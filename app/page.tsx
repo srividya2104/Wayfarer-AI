@@ -122,11 +122,9 @@ export default function Home() {
     }
   };
 
-  // Global Keyboard Shortcuts (Esc to close/collapse dialogs or return)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        // Blur active inputs or dismiss toasts
         if (document.activeElement instanceof HTMLElement) {
           document.activeElement.blur();
         }
@@ -140,15 +138,24 @@ export default function Home() {
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
       <Header />
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6">
         <TripForm onSubmit={fetchTripPlan} isLoading={status === "loading"} />
 
         {/* Dynamic State Machine */}
-        <section aria-label="Itinerary Results Area" className="mt-8">
+        <section aria-label="Itinerary Results Area" className="mt-6">
           {status === "idle" && <EmptyState />}
           {status === "loading" && <LoadingState />}
           {status === "error" && (
-            <ErrorState message={errorMessage || "Failed to generate plan."} onRetry={handleRetry} />
+            <div className="space-y-6">
+              <ErrorState message={errorMessage || "Failed to generate plan."} onRetry={handleRetry} />
+              {/* Point 16: Keep previous itinerary visible if available during error */}
+              {itinerary && (
+                <div className="opacity-70">
+                  <div className="text-xs text-slate-400 font-mono text-center mb-2">Previous Itinerary (Preserved):</div>
+                  <ItineraryView itinerary={itinerary} setItinerary={setItinerary} onShowToast={addToast} />
+                </div>
+              )}
+            </div>
           )}
           {status === "success" && itinerary && (
             <ItineraryView
