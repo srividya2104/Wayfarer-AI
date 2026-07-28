@@ -12,19 +12,38 @@ const WORKFLOW_STEPS = [
   { label: "Generating itinerary...", icon: PartyPopper },
 ];
 
-export default function LoadingState() {
+interface LoadingStateProps {
+  isComplete?: boolean;
+}
+
+export default function LoadingState({ isComplete }: LoadingStateProps) {
   const [activeStep, setActiveStep] = useState(0);
 
   useEffect(() => {
+    if (isComplete) return;
     const interval = setInterval(() => {
       setActiveStep((prev) => (prev < WORKFLOW_STEPS.length - 1 ? prev + 1 : prev));
     }, 1800);
     return () => clearInterval(interval);
-  }, []);
+  }, [isComplete]);
+
+  if (isComplete) {
+    return (
+      <div className="w-full bg-slate-900/90 border border-emerald-500/40 rounded-2xl p-8 my-6 text-center flex flex-col items-center justify-center space-y-3 shadow-2xl animate-in zoom-in-95 duration-300">
+        <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <CheckCircle2 className="w-8 h-8 animate-bounce" />
+        </div>
+        <h3 className="text-xl font-extrabold text-emerald-300">
+          ✓ Itinerary Generated Successfully!
+        </h3>
+        <p className="text-xs text-slate-400">Revealing your interactive schedule...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-slate-900/90 border border-indigo-500/30 rounded-2xl p-6 sm:p-10 my-6 shadow-2xl space-y-6 relative overflow-hidden">
-      {/* Background glow */}
+      {/* Background ambient glow */}
       <div className="absolute -top-24 -left-24 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl" />
       <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl" />
 

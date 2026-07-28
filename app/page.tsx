@@ -12,7 +12,7 @@ import Footer from "@/components/Footer";
 import { Itinerary, TripInput, Toast } from "@/lib/schemas";
 
 export default function Home() {
-  const [status, setStatus] = useState<"idle" | "loading" | "error" | "success">("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "complete" | "error" | "success">("idle");
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [lastSubmittedInput, setLastSubmittedInput] = useState<TripInput | null>(null);
@@ -38,7 +38,7 @@ export default function Home() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  // Race condition defense
+  // Race Condition Defense: AbortController ref + incrementing request ID ref
   const latestRequestId = useRef<number>(0);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -73,7 +73,6 @@ export default function Home() {
       clearTimeout(timeoutId);
 
       if (currentRequestId !== latestRequestId.current) {
-        console.warn(`[Stale Response Guarded] Discarding response for obsolete request #${currentRequestId}`);
         return;
       }
 
@@ -94,15 +93,21 @@ export default function Home() {
       const data = await response.json();
 
       if (currentRequestId === latestRequestId.current) {
+        // Requirement 4: Briefly show complete confirmation before revealing itinerary
+        setStatus("complete");
         setItinerary(data);
-        setStatus("success");
-        addToast("Itinerary generated successfully!");
+
+        setTimeout(() => {
+          if (currentRequestId === latestRequestId.current) {
+            setStatus("success");
+            addToast("Itinerary generated successfully!");
+          }
+        }, 500);
       }
     } catch (err: any) {
       clearTimeout(timeoutId);
 
       if (currentRequestId !== latestRequestId.current) {
-        console.log(`[Obsolete Request Aborted] Request #${currentRequestId} was aborted.`);
         return;
       }
 
@@ -139,18 +144,19 @@ export default function Home() {
       <Header />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6">
-        <TripForm onSubmit={fetchTripPlan} isLoading={status === "loading"} />
+        <TripForm onSubmit={fetchTripPlan} isLoading={status === "loading" || status === "complete"} />
 
         {/* Dynamic State Machine */}
         <section aria-label="Itinerary Results Area" className="mt-6">
           {status === "idle" && <EmptyState />}
-          {status === "loading" && <LoadingState />}
+          {(status === "loading" || status === "complete") && (
+            <LoadingState isComplete={status === "complete"} />
+          )}
           {status === "error" && (
             <div className="space-y-6">
               <ErrorState message={errorMessage || "Failed to generate plan."} onRetry={handleRetry} />
-              {/* Point 16: Keep previous itinerary visible if available during error */}
               {itinerary && (
-                <div className="opacity-70">
+                <div className="opacity-75">
                   <div className="text-xs text-slate-400 font-mono text-center mb-2">Previous Itinerary (Preserved):</div>
                   <ItineraryView itinerary={itinerary} setItinerary={setItinerary} onShowToast={addToast} />
                 </div>

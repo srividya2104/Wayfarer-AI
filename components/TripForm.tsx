@@ -133,7 +133,7 @@ export default function TripForm({ onSubmit, isLoading }: TripFormProps) {
 
   return (
     <div className="w-full space-y-4">
-      {/* 4. Compact Hero Header (15% vertical spacing reduction) */}
+      {/* Hero Header */}
       <div className="text-center space-y-2 py-1 max-w-2xl mx-auto">
         <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight">
           Design Your <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Perfect Journey</span>
@@ -142,7 +142,7 @@ export default function TripForm({ onSubmit, isLoading }: TripFormProps) {
           Generate structured AI travel itineraries that you can edit, reorder, and customize in seconds.
         </p>
 
-        {/* Hero Badges */}
+        {/* Clean Hero Badges */}
         <div className="flex flex-wrap items-center justify-center gap-2 pt-0.5">
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
             <CheckCircle2 className="w-3 h-3 text-indigo-400" />
@@ -159,12 +159,12 @@ export default function TripForm({ onSubmit, isLoading }: TripFormProps) {
         </div>
       </div>
 
-      {/* Main Form Container */}
+      {/* Form Container */}
       <form
         onSubmit={handleSubmit}
         className="w-full bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-2xl p-5 sm:p-7 shadow-2xl transition-all duration-300 hover:border-slate-700/80"
       >
-        {/* 5. Popular Destinations Presets */}
+        {/* Popular Destinations Presets */}
         <div className="mb-5">
           <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
             <Globe className="w-3.5 h-3.5 text-indigo-400" />
@@ -224,7 +224,7 @@ export default function TripForm({ onSubmit, isLoading }: TripFormProps) {
           )}
         </div>
 
-        {/* Form Options: Duration, Budget, Pace */}
+        {/* Options: Duration, Budget, Pace */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-5">
           <div className="bg-slate-950/40 p-3.5 rounded-xl border border-slate-800/80">
             <label htmlFor="duration-slider" className="flex items-center justify-between text-xs font-semibold text-slate-300 mb-1.5">
@@ -332,7 +332,7 @@ export default function TripForm({ onSubmit, isLoading }: TripFormProps) {
           </div>
         </div>
 
-        {/* 7. Generate Button with hover glow, lift, and loading spinner */}
+        {/* Generate Button */}
         <button
           type="submit"
           disabled={isLoading}
