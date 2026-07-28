@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
 
     try {
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-3.6-flash",
         contents: promptText,
         config: {
           responseMimeType: "application/json",
@@ -167,7 +167,7 @@ export async function POST(req: NextRequest) {
       const retryPrompt = buildSystemPrompt(body, errorDetails);
       try {
         const retryResponse = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: "gemini-3.6-flash",
           contents: retryPrompt,
           config: {
             responseMimeType: "application/json",
