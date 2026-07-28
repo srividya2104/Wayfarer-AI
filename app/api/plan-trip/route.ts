@@ -144,26 +144,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // --- STEP 2: Server-side validation using Zod ---
+    // --- STEP 2: Server-side validation using Zod schema ---
     let parsedJson: any;
     try {
       parsedJson = JSON.parse(rawText);
     } catch (parseErr) {
-      console.warn("[JSON Parse Warning] Gemini returned unparseable JSON on 1st attempt. Retrying...");
+      console.warn("[JSON Parse Error]: Gemini returned unparseable JSON string on 1st attempt.");
     }
 
     let validationResult = parsedJson ? ItinerarySchema.safeParse(parsedJson) : null;
 
-    // --- STEP 3: Server-side retry logic if 1st attempt failed schema validation ---
+    // --- STEP 3: Defense-in-depth retry logic ---
+    // If validation fails (either bad JSON string or schema mismatch), retry Gemini call ONCE
+    // appending explicit failure context to enforce schema contract before giving up.
     if (!validationResult || !validationResult.success) {
-      const errorMsg = validationResult
+      const errorDetails = validationResult
         ? validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")
-        : "Failed to parse JSON string";
+        : "Unparseable JSON structure";
 
-      console.warn(`[Zod Validation Failed - Retrying Once]: ${errorMsg}`);
+      console.warn(`[Zod Validation Failed - Initiating 1-Step Server Retry]: ${errorDetails}`);
 
-      // Retry Gemini call once with stricter error reminder context prompt
-      const retryPrompt = buildSystemPrompt(body, errorMsg);
+      const retryPrompt = buildSystemPrompt(body, errorDetails);
       try {
         const retryResponse = await ai.models.generateContent({
           model: "gemini-2.5-flash",
@@ -171,7 +172,7 @@ export async function POST(req: NextRequest) {
           config: {
             responseMimeType: "application/json",
             responseSchema: geminiItinerarySchema,
-            temperature: 0.3, // Lower temperature for strict schema adherence
+            temperature: 0.2, // Lower temperature to strictly enforce schema
           },
         });
 
@@ -179,7 +180,7 @@ export async function POST(req: NextRequest) {
         parsedJson = JSON.parse(rawText);
         validationResult = ItinerarySchema.safeParse(parsedJson);
       } catch (retryErr: any) {
-        console.error("[Gemini Retry API Error]:", retryErr);
+        console.error("[Gemini Retry Call Failed]:", retryErr);
       }
     }
 
