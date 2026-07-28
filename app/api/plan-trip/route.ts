@@ -31,7 +31,20 @@ const geminiItinerarySchema: Schema = {
     },
     bestTimeToVisit: {
       type: Type.STRING,
-      description: "Ideal season or months to visit e.g. 'March to May & Sept to Nov'",
+      description: "Ideal season or months to visit e.g. 'Spring & Autumn'",
+    },
+    travelScore: {
+      type: Type.STRING,
+      description: "Itinerary quality score e.g. '9.6 / 10'",
+    },
+    smartRecommendations: {
+      type: Type.OBJECT,
+      properties: {
+        nearbyAttraction: { type: Type.STRING },
+        localFood: { type: Type.STRING },
+        shoppingStreet: { type: Type.STRING },
+        hiddenGem: { type: Type.STRING },
+      },
     },
     days: {
       type: Type.ARRAY,
@@ -53,7 +66,7 @@ const geminiItinerarySchema: Schema = {
           },
           weatherForecast: {
             type: Type.STRING,
-            description: "Typical weather for this destination e.g. 'Sunny, 21°C'",
+            description: "Expected weather condition e.g. 'Sunny, 24°C'",
           },
           dayCostEstimate: {
             type: Type.STRING,
@@ -91,7 +104,23 @@ const geminiItinerarySchema: Schema = {
                 },
                 estimatedCost: {
                   type: Type.STRING,
-                  description: "Per-person estimated cost e.g. 'Free', '$15 entry', or '$25 lunch'",
+                  description: "Per-person estimated cost e.g. 'Free', '$15', or '$25'",
+                },
+                openingHours: {
+                  type: Type.STRING,
+                  description: "Opening hours e.g. '09:00 - 17:00' or '24 Hours'",
+                },
+                travelTip: {
+                  type: Type.STRING,
+                  description: "Short insider tip e.g. 'Arrive early to skip long lines'",
+                },
+                bestPhotoSpot: {
+                  type: Type.STRING,
+                  description: "Best photo viewpoint e.g. 'Main wooden balcony'",
+                },
+                category: {
+                  type: Type.STRING,
+                  enum: ["attraction", "food", "culture", "shopping", "relaxation"],
                 },
               },
               required: ["id", "time", "name", "description", "durationMinutes", "location"],
@@ -106,7 +135,7 @@ const geminiItinerarySchema: Schema = {
 };
 
 /**
- * Helper to construct the system prompt for Gemini based on user input parameters.
+ * Helper to construct system prompt for Gemini based on user input parameters.
  */
 function buildSystemPrompt(input: TripInput, retryContext?: string): string {
   return `You are an expert travel planner assistant. Create a realistic, highly detailed, day-by-day travel itinerary.
@@ -123,7 +152,7 @@ CRITICAL REQUIREMENTS:
 2. For each day, include 3 to 5 realistic sequential stops spanning morning to evening.
 3. Generate unique string IDs for stops formatted as 'd{day_number}s{stop_number}' (e.g. 'd1s1', 'd1s2', 'd2s1').
 4. 'durationMinutes' MUST be an integer representing estimated time in minutes.
-5. Provide realistic cost estimates and walking time estimates for each day and stop.
+5. Include realistic details for 'openingHours', 'travelTip', 'bestPhotoSpot', and 'smartRecommendations'.
 6. Do NOT include markdown code blocks or explanatory conversational text. Output pure JSON matching the specified schema.
 
 ${retryContext ? `\n[ATTENTION - PREVIOUS ATTEMPT FAILED SCHEMA VALIDATION]:\n${retryContext}\nPlease strictly fix the schema violations above and ensure all required fields are present with exact types.` : ""}`;
@@ -153,7 +182,7 @@ export async function POST(req: NextRequest) {
 
     const ai = new GoogleGenAI({ apiKey });
 
-    // --- STEP 1: First attempt calling Gemini with schema constraint ---
+    // --- STEP 1: First attempt calling Gemini ---
     let promptText = buildSystemPrompt(body);
     let rawText = "";
 
@@ -187,7 +216,7 @@ export async function POST(req: NextRequest) {
 
     let validationResult = parsedJson ? ItinerarySchema.safeParse(parsedJson) : null;
 
-    // --- STEP 3: Defense-in-depth retry logic ---
+    // --- STEP 3: 1-Step automatic server retry on invalid schema ---
     if (!validationResult || !validationResult.success) {
       const errorDetails = validationResult
         ? validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")

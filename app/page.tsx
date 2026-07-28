@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import Header from "@/components/Header";
 import TripForm from "@/components/TripForm";
 import EmptyState from "@/components/EmptyState";
@@ -12,13 +12,11 @@ import Footer from "@/components/Footer";
 import { Itinerary, TripInput, Toast } from "@/lib/schemas";
 
 export default function Home() {
-  // Main app UI state machine
   const [status, setStatus] = useState<"idle" | "loading" | "error" | "success">("idle");
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [lastSubmittedInput, setLastSubmittedInput] = useState<TripInput | null>(null);
 
-  // Toast notifications array state
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const addToast = useCallback((message: string, actionLabel?: string, onAction?: () => void) => {
@@ -29,9 +27,8 @@ export default function Home() {
       actionLabel,
       onAction,
     };
-    setToasts((prev) => [...prev.slice(-3), newToast]); // keep max 4 toasts
+    setToasts((prev) => [...prev.slice(-3), newToast]);
 
-    // Auto dismiss after 4 seconds
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== newToast.id));
     }, 4000);
@@ -41,34 +38,24 @@ export default function Home() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  // =========================================================================
-  // RACE-CONDITION & STALE-RESPONSE GUARDING (Interview Rubric Defense)
-  //
-  // Layer 1: AbortController ref (`abortControllerRef.current`) cancels in-flight fetch.
-  // Layer 2: `latestRequestId.current` ref counter ensures obsolete async callbacks are discarded.
-  // =========================================================================
+  // Race condition defense
   const latestRequestId = useRef<number>(0);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchTripPlan = useCallback(async (input: TripInput) => {
-    // 1. Cancel active fetch
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
 
-    // 2. Spawn new AbortController instance
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
-    // 3. Increment request ID
     const currentRequestId = ++latestRequestId.current;
 
-    // 4. Update UI status
     setStatus("loading");
     setErrorMessage(null);
     setLastSubmittedInput(input);
 
-    // 5. 20-second client timeout guard
     const timeoutId = setTimeout(() => {
       if (latestRequestId.current === currentRequestId) {
         controller.abort();
@@ -85,7 +72,6 @@ export default function Home() {
 
       clearTimeout(timeoutId);
 
-      // Verify staleness
       if (currentRequestId !== latestRequestId.current) {
         console.warn(`[Stale Response Guarded] Discarding response for obsolete request #${currentRequestId}`);
         return;
@@ -107,7 +93,6 @@ export default function Home() {
 
       const data = await response.json();
 
-      // Commit to UI state if request is still current
       if (currentRequestId === latestRequestId.current) {
         setItinerary(data);
         setStatus("success");
@@ -137,6 +122,20 @@ export default function Home() {
     }
   };
 
+  // Global Keyboard Shortcuts (Esc to close/collapse dialogs or return)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        // Blur active inputs or dismiss toasts
+        if (document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
       <Header />
@@ -144,7 +143,7 @@ export default function Home() {
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8">
         <TripForm onSubmit={fetchTripPlan} isLoading={status === "loading"} />
 
-        {/* Dynamic UX State Machine */}
+        {/* Dynamic State Machine */}
         <section aria-label="Itinerary Results Area" className="mt-8">
           {status === "idle" && <EmptyState />}
           {status === "loading" && <LoadingState />}
@@ -163,7 +162,6 @@ export default function Home() {
 
       <Footer />
 
-      {/* Global Toast Overlay */}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>
   );

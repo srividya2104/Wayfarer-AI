@@ -11,6 +11,9 @@ import {
   ArrowDown,
   Info,
   DollarSign,
+  Lightbulb,
+  Camera,
+  DoorOpen,
 } from "lucide-react";
 import { Stop } from "@/lib/schemas";
 
@@ -37,8 +40,8 @@ const StopCard = memo(function StopCard({
   const isLast = index === totalStops - 1;
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800/80 rounded-xl p-4 sm:p-5 transition-all duration-200 hover:border-slate-700/80 shadow-md group hover:-translate-y-0.5">
-      {/* Top Row */}
+    <div className="bg-slate-900/90 border border-slate-800/80 rounded-xl p-4 sm:p-5 transition-all duration-200 hover:border-slate-700/80 shadow-md group hover:-translate-y-0.5 relative">
+      {/* Header Row */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div className="flex items-start gap-3 flex-1 min-w-0">
           {/* Index Badge */}
@@ -47,7 +50,7 @@ const StopCard = memo(function StopCard({
           </div>
 
           <div className="min-w-0 flex-1">
-            {/* Meta Tags */}
+            {/* Meta Badges */}
             <div className="flex flex-wrap items-center gap-2 mb-1.5">
               <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-slate-800 text-slate-300 font-mono flex items-center gap-1">
                 <Clock className="w-3.5 h-3.5 text-indigo-400" />
@@ -60,6 +63,10 @@ const StopCard = memo(function StopCard({
               <span className="text-xs font-medium px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 flex items-center gap-1">
                 <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
                 {stop.estimatedCost || "Free"}
+              </span>
+              <span className="text-xs font-medium px-2.5 py-0.5 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/20 flex items-center gap-1">
+                <DoorOpen className="w-3.5 h-3.5 text-amber-400" />
+                {stop.openingHours || "09:00 - 17:00"}
               </span>
               <span className="text-xs text-slate-400 flex items-center gap-1 truncate max-w-[220px]">
                 <MapPin className="w-3.5 h-3.5 text-rose-400 shrink-0" />
@@ -75,7 +82,6 @@ const StopCard = memo(function StopCard({
 
         {/* Action Controls Toolbar */}
         <div className="flex items-center gap-1 shrink-0 bg-slate-950/70 p-1 rounded-lg border border-slate-800 self-end sm:self-start">
-          {/* Move Up */}
           <button
             type="button"
             onClick={onMoveUp}
@@ -87,7 +93,6 @@ const StopCard = memo(function StopCard({
             <ArrowUp className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
           </button>
 
-          {/* Move Down */}
           <button
             type="button"
             onClick={onMoveDown}
@@ -101,7 +106,6 @@ const StopCard = memo(function StopCard({
 
           <div className="w-px h-4 bg-slate-800 my-auto mx-0.5" />
 
-          {/* Expand Details */}
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
@@ -112,7 +116,6 @@ const StopCard = memo(function StopCard({
             {isExpanded ? <ChevronUp className="w-4 h-4 sm:w-3.5 sm:h-3.5" /> : <ChevronDown className="w-4 h-4 sm:w-3.5 sm:h-3.5" />}
           </button>
 
-          {/* Delete */}
           <button
             type="button"
             onClick={onRemove}
@@ -125,11 +128,32 @@ const StopCard = memo(function StopCard({
         </div>
       </div>
 
-      {/* Expandable Details */}
+      {/* Expandable Details Section */}
       {isExpanded && (
-        <div className="mt-3 pt-3 border-t border-slate-800/60 text-xs text-slate-300 leading-relaxed flex items-start gap-2 animate-in fade-in duration-200">
-          <Info className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
-          <p>{stop.description}</p>
+        <div className="mt-3 pt-3 border-t border-slate-800/60 text-xs text-slate-300 space-y-2 animate-in fade-in duration-200">
+          <div className="flex items-start gap-2 leading-relaxed">
+            <Info className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+            <p>{stop.description}</p>
+          </div>
+
+          {/* Travel Tip & Photo Spot Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+            <div className="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/60 flex items-start gap-2 text-slate-300">
+              <Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold text-[11px] text-amber-300 block">Insider Tip:</span>
+                <span>{stop.travelTip || "Arrive early in the morning to avoid queues."}</span>
+              </div>
+            </div>
+
+            <div className="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/60 flex items-start gap-2 text-slate-300">
+              <Camera className="w-3.5 h-3.5 text-purple-400 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold text-[11px] text-purple-300 block">Best Photo Spot:</span>
+                <span>{stop.bestPhotoSpot || "Main entrance viewpoint"}</span>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

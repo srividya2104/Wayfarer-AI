@@ -1,73 +1,96 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Sparkles, MapPin, Calendar, Clock } from "lucide-react";
+import { Sparkles, CheckCircle2, Loader2, MapPin, Calendar, Utensils, Route, ShieldCheck, PartyPopper } from "lucide-react";
 
-const LOADING_MESSAGES = [
-  "Analyzing destination & local highlights...",
-  "Planning daily schedule & transit routes...",
-  "Optimizing travel time & pacing...",
-  "Finalizing itinerary & validating JSON structure...",
+const WORKFLOW_STEPS = [
+  { label: "Understanding your destination...", icon: Sparkles },
+  { label: "Planning the best route...", icon: Route },
+  { label: "Finding attractions & landmarks...", icon: MapPin },
+  { label: "Matching your pace & interests...", icon: Utensils },
+  { label: "Creating daily schedule...", icon: Calendar },
+  { label: "Validating structured JSON with Zod...", icon: ShieldCheck },
+  { label: "Finalizing itinerary...", icon: PartyPopper },
 ];
 
 export default function LoadingState() {
-  const [msgIdx, setMsgIdx] = useState(0);
+  const [activeStep, setActiveStep] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setMsgIdx((prev) => (prev + 1) % LOADING_MESSAGES.length);
-    }, 2000);
+      setActiveStep((prev) => (prev < WORKFLOW_STEPS.length - 1 ? prev + 1 : prev));
+    }, 1800);
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="w-full bg-slate-900/80 border border-indigo-500/30 rounded-2xl p-6 sm:p-10 my-6 shadow-2xl space-y-6 relative overflow-hidden">
-      {/* Top Banner Status */}
-      <div className="flex flex-col items-center justify-center text-center space-y-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-semibold animate-pulse">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Generating Itinerary...</span>
+    <div className="w-full bg-slate-900/90 border border-indigo-500/30 rounded-2xl p-6 sm:p-10 my-6 shadow-2xl space-y-6 relative overflow-hidden">
+      {/* Glow background */}
+      <div className="absolute -top-24 -left-24 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl" />
+      <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl" />
+
+      {/* Main Header */}
+      <div className="flex flex-col items-center justify-center text-center space-y-2 relative z-10">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 p-0.5 shadow-xl shadow-indigo-500/20 mb-1">
+          <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
+            <Loader2 className="w-7 h-7 text-indigo-400 animate-spin" />
+          </div>
         </div>
 
-        <h3 className="text-xl font-extrabold text-slate-100 transition-all duration-300">
-          {LOADING_MESSAGES[msgIdx]}
+        <h3 className="text-xl font-extrabold text-slate-100 tracking-tight">
+          Crafting Your AI Itinerary
         </h3>
-        <p className="text-xs text-slate-400">
-          Gemini 3.6 Flash engine is crafting your customized schedule.
+        <p className="text-xs text-indigo-300 font-medium animate-pulse">
+          {WORKFLOW_STEPS[activeStep].label}
         </p>
       </div>
 
-      {/* Animated Skeleton Cards */}
-      <div className="space-y-4 max-w-3xl mx-auto">
-        {/* Skeleton Day 1 */}
-        <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-5 space-y-4 animate-pulse">
-          <div className="flex items-center justify-between">
-            <div className="h-6 w-32 bg-slate-800 rounded-lg" />
-            <div className="h-5 w-20 bg-slate-800/80 rounded-md" />
-          </div>
+      {/* Animated Step List */}
+      <div className="max-w-md mx-auto bg-slate-950/70 p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-3 relative z-10">
+        {WORKFLOW_STEPS.map((step, idx) => {
+          const StepIcon = step.icon;
+          const isDone = idx < activeStep;
+          const isCurrent = idx === activeStep;
 
-          <div className="space-y-3">
-            <div className="h-20 bg-slate-900 border border-slate-800/60 rounded-lg p-3 flex flex-col justify-between">
-              <div className="h-4 w-1/2 bg-slate-800 rounded" />
-              <div className="h-3 w-3/4 bg-slate-800/60 rounded" />
+          return (
+            <div
+              key={idx}
+              className={`flex items-center gap-3 text-xs sm:text-sm transition-all duration-300 ${
+                isDone
+                  ? "text-emerald-400 font-medium"
+                  : isCurrent
+                  ? "text-indigo-300 font-semibold scale-[1.02] translate-x-1"
+                  : "text-slate-600 opacity-60"
+              }`}
+            >
+              <div
+                className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border transition-all ${
+                  isDone
+                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                    : isCurrent
+                    ? "bg-indigo-500/20 border-indigo-500/50 text-indigo-300"
+                    : "bg-slate-900 border-slate-800 text-slate-700"
+                }`}
+              >
+                {isDone ? (
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                ) : isCurrent ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-400" />
+                ) : (
+                  <StepIcon className="w-3.5 h-3.5" />
+                )}
+              </div>
+
+              <span className="truncate">{step.label}</span>
             </div>
+          );
+        })}
+      </div>
 
-            <div className="h-20 bg-slate-900 border border-slate-800/60 rounded-lg p-3 flex flex-col justify-between">
-              <div className="h-4 w-2/5 bg-slate-800 rounded" />
-              <div className="h-3 w-2/3 bg-slate-800/60 rounded" />
-            </div>
-          </div>
-        </div>
-
-        {/* Skeleton Day 2 */}
-        <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-5 space-y-4 animate-pulse opacity-60">
-          <div className="flex items-center justify-between">
-            <div className="h-6 w-40 bg-slate-800 rounded-lg" />
-            <div className="h-5 w-20 bg-slate-800/80 rounded-md" />
-          </div>
-
-          <div className="h-20 bg-slate-900 border border-slate-800/60 rounded-lg" />
-        </div>
+      {/* Skeleton placeholders */}
+      <div className="max-w-xl mx-auto space-y-3 opacity-30">
+        <div className="h-10 bg-slate-800 rounded-xl animate-pulse" />
+        <div className="h-20 bg-slate-800/60 rounded-xl animate-pulse" />
       </div>
     </div>
   );

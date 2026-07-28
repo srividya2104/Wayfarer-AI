@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, memo } from "react";
-import { ChevronDown, ChevronUp, Calendar, Footprints, DollarSign, CloudSun } from "lucide-react";
+import { ChevronDown, ChevronUp, Footprints, DollarSign, CloudSun, ArrowDown } from "lucide-react";
 import { DayPlan, Stop } from "@/lib/schemas";
 import StopCard from "./StopCard";
 
@@ -22,14 +22,12 @@ const DayCard = memo(function DayCard({
 }: DayCardProps) {
   const [isOpen, setIsOpen] = useState(true);
 
-  // Sync with global expand/collapse toggle
   useEffect(() => {
     if (isGloballyExpanded !== undefined) {
       setIsOpen(isGloballyExpanded);
     }
   }, [isGloballyExpanded]);
 
-  // Handler: Remove a stop with Undo option in Toast notification
   const handleRemoveStop = (stopIndex: number) => {
     const removedStop = dayPlan.stops[stopIndex];
     const updated = dayPlan.stops.filter((_, idx) => idx !== stopIndex);
@@ -42,7 +40,6 @@ const DayCard = memo(function DayCard({
     });
   };
 
-  // Handler: Move stop UP
   const handleMoveUp = (stopIndex: number) => {
     if (stopIndex <= 0) return;
     const updated = [...dayPlan.stops];
@@ -53,7 +50,6 @@ const DayCard = memo(function DayCard({
     onShowToast(`Moved "${temp.name}" up`);
   };
 
-  // Handler: Move stop DOWN
   const handleMoveDown = (stopIndex: number) => {
     if (stopIndex >= dayPlan.stops.length - 1) return;
     const updated = [...dayPlan.stops];
@@ -101,7 +97,7 @@ const DayCard = memo(function DayCard({
           </div>
         </div>
 
-        {/* Day Meta Information Badges & Chevron */}
+        {/* Day Meta Badges */}
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <span className="text-xs font-medium px-2.5 py-1 rounded-md bg-slate-950/80 text-slate-300 border border-slate-800 flex items-center gap-1.5">
             <Footprints className="w-3.5 h-3.5 text-indigo-400" />
@@ -113,9 +109,10 @@ const DayCard = memo(function DayCard({
             {dayPlan.dayCostEstimate || "$40 - $80"}
           </span>
 
-          <span className="text-xs font-medium px-2.5 py-1 rounded-md bg-slate-950/80 text-amber-300 border border-slate-800 flex items-center gap-1.5">
+          {/* Requirement 7: Weather Badge with Estimated Weather marker */}
+          <span className="text-xs font-medium px-2.5 py-1 rounded-md bg-slate-950/80 text-amber-300 border border-slate-800 flex items-center gap-1.5" title="Estimated Weather">
             <CloudSun className="w-3.5 h-3.5 text-amber-400" />
-            {dayPlan.weatherForecast || "Sunny 22°C"}
+            <span>Est: {dayPlan.weatherForecast || "Sunny 24°C"}</span>
           </span>
 
           <div className="p-1.5 rounded-lg bg-slate-800 text-slate-400 ml-auto sm:ml-0">
@@ -124,24 +121,35 @@ const DayCard = memo(function DayCard({
         </div>
       </div>
 
-      {/* Day Accordion Content */}
+      {/* Requirement 3: Day Timeline Connector View */}
       {isOpen && (
-        <div className="p-4 sm:p-5 border-t border-slate-800/80 space-y-3 bg-slate-950/40 animate-in fade-in duration-200">
+        <div className="p-4 sm:p-6 border-t border-slate-800/80 space-y-4 bg-slate-950/40 animate-in fade-in duration-200">
           {dayPlan.stops.length === 0 ? (
             <div className="p-6 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded-xl">
-              All stops removed for Day {dayPlan.day}. You can regenerate or restore stops.
+              All stops removed for Day {dayPlan.day}. You can restore or regenerate stops.
             </div>
           ) : (
             dayPlan.stops.map((stop, sIdx) => (
-              <StopCard
-                key={stop.id || `d${dayPlan.day}-s${sIdx}`}
-                stop={stop}
-                index={sIdx}
-                totalStops={dayPlan.stops.length}
-                onRemove={() => handleRemoveStop(sIdx)}
-                onMoveUp={() => handleMoveUp(sIdx)}
-                onMoveDown={() => handleMoveDown(sIdx)}
-              />
+              <React.Fragment key={stop.id || `d${dayPlan.day}-s${sIdx}`}>
+                <StopCard
+                  stop={stop}
+                  index={sIdx}
+                  totalStops={dayPlan.stops.length}
+                  onRemove={() => handleRemoveStop(sIdx)}
+                  onMoveUp={() => handleMoveUp(sIdx)}
+                  onMoveDown={() => handleMoveDown(sIdx)}
+                />
+
+                {/* Timeline connector arrow between sequential stops */}
+                {sIdx < dayPlan.stops.length - 1 && (
+                  <div className="flex justify-center my-1 py-0.5">
+                    <div className="flex items-center gap-1 text-[10px] font-mono text-slate-500 bg-slate-900/60 px-2 py-0.5 rounded-full border border-slate-800">
+                      <ArrowDown className="w-3 h-3 text-indigo-400 animate-pulse" />
+                      <span>Transit ~15 min</span>
+                    </div>
+                  </div>
+                )}
+              </React.Fragment>
             ))
           )}
         </div>
