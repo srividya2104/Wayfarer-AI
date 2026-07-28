@@ -34,9 +34,9 @@ export default function LoadingState({ isComplete }: LoadingStateProps) {
           <CheckCircle2 className="w-8 h-8 animate-bounce" />
         </div>
         <h3 className="text-xl font-extrabold text-emerald-300">
-          ✓ Itinerary Generated Successfully!
+          ✓ Itinerary Generated! Enjoy your trip!
         </h3>
-        <p className="text-xs text-slate-400">Revealing your interactive schedule...</p>
+        <p className="text-xs text-slate-400">Revealing your custom travel schedule...</p>
       </div>
     );
   }

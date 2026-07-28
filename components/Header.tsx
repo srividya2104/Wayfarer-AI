@@ -17,15 +17,18 @@ export default function Header() {
             <h1 className="text-base sm:text-lg font-extrabold text-slate-100 flex items-center gap-2">
               Wayfarer AI
               <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
-                Interactive Itinerary Generator
+                Interactive Trip Planner
               </span>
             </h1>
           </div>
         </div>
 
-        {/* Live Status Badge */}
+        {/* Live Status Badge with Pulsing Live Dot */}
         <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
-          <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400" />
+          </span>
           <span className="text-emerald-400 font-semibold">AI Online</span>
           <span className="hidden sm:inline text-slate-600">•</span>
           <span className="hidden sm:inline text-slate-300">Gemini 3.6 Flash</span>

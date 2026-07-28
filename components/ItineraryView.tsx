@@ -15,14 +15,12 @@ import {
   Sun,
   CheckCircle2,
   Printer,
-  Footprints,
   Clock,
   Compass,
   Utensils,
   Landmark,
   ArrowUp,
-  ShoppingBag,
-  Gem,
+  FileText,
 } from "lucide-react";
 import { Itinerary, Stop } from "@/lib/schemas";
 import DayCard from "./DayCard";
@@ -42,7 +40,6 @@ export default function ItineraryView({
   const [showScrollTop, setShowScrollTop] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Smooth scroll into view on load & scroll listener for floating actions
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -55,7 +52,6 @@ export default function ItineraryView({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Compute Travel Statistics
   const totalStops = itinerary.days.reduce((acc, d) => acc + d.stops.length, 0);
   const totalMinutes = itinerary.days.reduce(
     (acc, d) => acc + d.stops.reduce((sAcc, s) => sAcc + s.durationMinutes, 0),
@@ -63,7 +59,6 @@ export default function ItineraryView({
   );
   const totalHours = (totalMinutes / 60).toFixed(1);
 
-  // Count categories
   let foodCount = 0;
   let historyCount = 0;
   itinerary.days.forEach((day) => {
@@ -122,7 +117,14 @@ export default function ItineraryView({
     onShowToast("Exported JSON itinerary!");
   };
 
-  // Requirement 9: Print Friendly Trigger
+  // Point 7: Download PDF trigger (triggers browser print-to-pdf dialog)
+  const handleDownloadPDF = () => {
+    onShowToast("Opening PDF export dialog...");
+    setTimeout(() => {
+      window.print();
+    }, 300);
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -138,7 +140,7 @@ export default function ItineraryView({
       ref={containerRef}
       className="w-full space-y-6 my-6 animate-in fade-in zoom-in-95 duration-500 relative"
     >
-      {/* 2. Beautiful Trip Dashboard */}
+      {/* Trip Dashboard Header */}
       <div className="bg-gradient-to-br from-slate-900 via-slate-900/90 to-indigo-950/40 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6 relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800/80 pb-6">
           <div>
@@ -159,12 +161,13 @@ export default function ItineraryView({
             </p>
           </div>
 
-          {/* 9. Export Options (Copy, Download, Print Friendly) */}
+          {/* Point 7: Export Toolbar including Download PDF */}
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={handleCopyItinerary}
-              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-all active:scale-95 min-h-[40px]"
+              aria-label="Copy text itinerary"
+              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-all active:scale-95 min-h-[40px] focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none"
             >
               <Copy className="w-4 h-4 text-indigo-400" />
               <span>Copy</span>
@@ -173,24 +176,36 @@ export default function ItineraryView({
             <button
               type="button"
               onClick={handleDownloadJSON}
-              className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-indigo-600/20 transition-all active:scale-95 min-h-[40px]"
+              aria-label="Download JSON file"
+              className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-indigo-600/20 transition-all active:scale-95 min-h-[40px] focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none"
             >
               <Download className="w-4 h-4" />
-              <span>Download</span>
+              <span>Download JSON</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleDownloadPDF}
+              aria-label="Download PDF"
+              className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-purple-600/20 transition-all active:scale-95 min-h-[40px] focus-visible:ring-2 focus-visible:ring-purple-500 outline-none"
+            >
+              <FileText className="w-4 h-4" />
+              <span>Download PDF</span>
             </button>
 
             <button
               type="button"
               onClick={handlePrint}
-              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-all active:scale-95 min-h-[40px]"
+              aria-label="Print itinerary"
+              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-all active:scale-95 min-h-[40px] focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none"
             >
-              <Printer className="w-4 h-4 text-purple-400" />
+              <Printer className="w-4 h-4 text-slate-400" />
               <span>Print</span>
             </button>
           </div>
         </div>
 
-        {/* 5. Travel Statistics Dashboard Grid */}
+        {/* Dashboard Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
           <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
             <div className="text-[11px] text-slate-400 flex items-center gap-1 mb-1">
@@ -235,10 +250,10 @@ export default function ItineraryView({
           </div>
         </div>
 
-        {/* 4. Progress Indicator */}
+        {/* Progress Indicator */}
         <div className="bg-slate-950/80 p-4 rounded-xl border border-slate-800/80 space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-300 font-semibold">
-            <span>Trip Execution Progress</span>
+            <span>Trip Execution Breakdown</span>
             <span className="text-indigo-400 font-mono">{itinerary.days.length} Days Configured</span>
           </div>
 
@@ -256,17 +271,18 @@ export default function ItineraryView({
         </div>
       </div>
 
-      {/* Days List Header */}
+      {/* Days List Toolbar */}
       <div className="flex items-center justify-between px-1">
         <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2">
           <Layers className="w-5 h-5 text-indigo-400" />
-          Interactive Day-by-Day Timeline
+          Interactive Day-by-Day Schedule
         </h3>
 
         <button
           type="button"
           onClick={() => setIsGloballyExpanded(!isGloballyExpanded)}
-          className="text-xs font-semibold px-3 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 flex items-center gap-1.5 transition-colors min-h-[40px]"
+          aria-label={isGloballyExpanded ? "Collapse all days" : "Expand all days"}
+          className="text-xs font-semibold px-3 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 flex items-center gap-1.5 transition-colors min-h-[40px] focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none"
         >
           {isGloballyExpanded ? (
             <>
@@ -296,7 +312,7 @@ export default function ItineraryView({
         ))}
       </div>
 
-      {/* 8. Smart Recommendations Section */}
+      {/* Point 5: Smart Recommendations Cards with Rich Emojis */}
       <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-xl">
         <h4 className="text-base font-bold text-slate-100 flex items-center gap-2">
           <Compass className="w-5 h-5 text-indigo-400" />
@@ -304,32 +320,32 @@ export default function ItineraryView({
         </h4>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 flex items-start gap-2.5">
-            <MapPin className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+          <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 flex items-start gap-3">
+            <span className="text-2xl p-1 bg-slate-900 rounded-lg border border-slate-800">🏯</span>
             <div>
               <span className="text-[11px] font-bold text-indigo-300 block uppercase">Bonus Attraction</span>
               <span className="text-xs text-slate-200 font-medium">{recs.nearbyAttraction || "Fushimi Inari Shrine"}</span>
             </div>
           </div>
 
-          <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 flex items-start gap-2.5">
-            <Utensils className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 flex items-start gap-3">
+            <span className="text-2xl p-1 bg-slate-900 rounded-lg border border-slate-800">🍜</span>
             <div>
               <span className="text-[11px] font-bold text-amber-300 block uppercase">Must-Try Food</span>
               <span className="text-xs text-slate-200 font-medium">{recs.localFood || "Matcha Parfait & Tonkotsu Ramen"}</span>
             </div>
           </div>
 
-          <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 flex items-start gap-2.5">
-            <ShoppingBag className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
+          <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 flex items-start gap-3">
+            <span className="text-2xl p-1 bg-slate-900 rounded-lg border border-slate-800">🛍️</span>
             <div>
               <span className="text-[11px] font-bold text-purple-300 block uppercase">Shopping Street</span>
               <span className="text-xs text-slate-200 font-medium">{recs.shoppingStreet || "Nishiki Market"}</span>
             </div>
           </div>
 
-          <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 flex items-start gap-2.5">
-            <Gem className="w-4 h-4 text-pink-400 shrink-0 mt-0.5" />
+          <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 flex items-start gap-3">
+            <span className="text-2xl p-1 bg-slate-900 rounded-lg border border-slate-800">💎</span>
             <div>
               <span className="text-[11px] font-bold text-pink-300 block uppercase">Hidden Gem</span>
               <span className="text-xs text-slate-200 font-medium">{recs.hiddenGem || "Gio-ji Temple Moss Garden"}</span>
@@ -338,13 +354,13 @@ export default function ItineraryView({
         </div>
       </div>
 
-      {/* 13. Floating Action Buttons */}
+      {/* Floating Action Button */}
       <div className="fixed bottom-6 left-6 z-40 flex items-center gap-2">
         {showScrollTop && (
           <button
             type="button"
             onClick={scrollToTop}
-            className="p-3 rounded-full bg-slate-900/90 border border-slate-700 text-slate-200 shadow-2xl hover:bg-slate-800 transition-all active:scale-95"
+            className="p-3 rounded-full bg-slate-900/90 border border-slate-700 text-slate-200 shadow-2xl hover:bg-slate-800 transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none"
             title="Back to top"
             aria-label="Back to top"
           >
