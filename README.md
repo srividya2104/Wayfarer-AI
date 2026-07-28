@@ -1,4 +1,4 @@
-# ✈️ Wayfarer AI - Interactive Trip Planner
+# ✈️ Wayfarer AI
 
 Wayfarer AI is a production-quality, responsive Next.js (App Router) web application built for an AI Trip Planner coding evaluation. It converts free-form travel prompts into structured, interactive day-by-day itineraries with full reordering and editing controls, server-side Zod validation with 1-step automatic retry, and client race-condition protection.
 
@@ -27,7 +27,7 @@ graph TD
 ## 🏛️ Folder Structure
 
 ```
-ai-trip-planner/
+wayfarer-ai/
 ├── app/
 │   ├── api/
 │   │   └── plan-trip/
@@ -38,7 +38,7 @@ ai-trip-planner/
 ├── lib/
 │   └── schemas.ts               # Shared Zod schemas, TypeScript types, and Toast interfaces
 ├── components/
-│   ├── Header.tsx               # Navigation header with live status
+│   ├── Header.tsx               # Navigation header with live AI status
 │   ├── Footer.tsx               # Footer with tech stack breakdown
 │   ├── TripForm.tsx             # Hero section, prompt form, character counter, destination presets
 │   ├── ItineraryView.tsx        # Dashboard, timeline schedule, smart recommendations, export tools
@@ -92,7 +92,7 @@ ai-trip-planner/
 ### 1. Clone & Install Dependencies
 ```bash
 git clone <repository-url>
-cd ai-trip-planner
+cd wayfarer-ai
 npm install
 ```
 
