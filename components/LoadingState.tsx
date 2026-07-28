@@ -1,83 +1,73 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Loader2, Sparkles, MapPin, Calendar, CheckCircle2 } from "lucide-react";
+import { Sparkles, MapPin, Calendar, Clock } from "lucide-react";
 
-const LOADING_STEPS = [
-  "Connecting to Gemini AI Engine...",
-  "Analyzing travel preferences & duration...",
-  "Selecting top-rated attractions & hidden gems...",
-  "Calculating realistic transit times...",
-  "Validating structured JSON itinerary with Zod...",
-  "Finalizing your interactive day-by-day plan...",
+const LOADING_MESSAGES = [
+  "Analyzing destination & local highlights...",
+  "Planning daily schedule & transit routes...",
+  "Optimizing travel time & pacing...",
+  "Finalizing itinerary & validating JSON structure...",
 ];
 
 export default function LoadingState() {
-  const [currentStep, setCurrentStep] = useState(0);
+  const [msgIdx, setMsgIdx] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentStep((prev) => (prev < LOADING_STEPS.length - 1 ? prev + 1 : prev));
-    }, 2500);
+      setMsgIdx((prev) => (prev + 1) % LOADING_MESSAGES.length);
+    }, 2000);
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="w-full bg-slate-900/60 border border-indigo-500/30 rounded-2xl p-8 sm:p-12 text-center flex flex-col items-center justify-center my-6 shadow-2xl relative overflow-hidden">
-      {/* Background ambient glow */}
-      <div className="absolute -top-24 -left-24 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl" />
-      <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl" />
+    <div className="w-full bg-slate-900/80 border border-indigo-500/30 rounded-2xl p-6 sm:p-10 my-6 shadow-2xl space-y-6 relative overflow-hidden">
+      {/* Top Banner Status */}
+      <div className="flex flex-col items-center justify-center text-center space-y-2">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-semibold animate-pulse">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Generating Itinerary...</span>
+        </div>
 
-      <div className="relative mb-6">
-        <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 p-0.5 shadow-xl shadow-indigo-500/20">
-          <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
-            <Loader2 className="w-10 h-10 text-indigo-400 animate-spin" />
+        <h3 className="text-xl font-extrabold text-slate-100 transition-all duration-300">
+          {LOADING_MESSAGES[msgIdx]}
+        </h3>
+        <p className="text-xs text-slate-400">
+          Gemini 3.6 Flash engine is crafting your customized schedule.
+        </p>
+      </div>
+
+      {/* Animated Skeleton Cards */}
+      <div className="space-y-4 max-w-3xl mx-auto">
+        {/* Skeleton Day 1 */}
+        <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-5 space-y-4 animate-pulse">
+          <div className="flex items-center justify-between">
+            <div className="h-6 w-32 bg-slate-800 rounded-lg" />
+            <div className="h-5 w-20 bg-slate-800/80 rounded-md" />
+          </div>
+
+          <div className="space-y-3">
+            <div className="h-20 bg-slate-900 border border-slate-800/60 rounded-lg p-3 flex flex-col justify-between">
+              <div className="h-4 w-1/2 bg-slate-800 rounded" />
+              <div className="h-3 w-3/4 bg-slate-800/60 rounded" />
+            </div>
+
+            <div className="h-20 bg-slate-900 border border-slate-800/60 rounded-lg p-3 flex flex-col justify-between">
+              <div className="h-4 w-2/5 bg-slate-800 rounded" />
+              <div className="h-3 w-2/3 bg-slate-800/60 rounded" />
+            </div>
           </div>
         </div>
-        <div className="absolute -bottom-1 -right-1 p-1.5 bg-purple-500 rounded-full text-white shadow-md">
-          <Sparkles className="w-4 h-4 animate-bounce" />
+
+        {/* Skeleton Day 2 */}
+        <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-5 space-y-4 animate-pulse opacity-60">
+          <div className="flex items-center justify-between">
+            <div className="h-6 w-40 bg-slate-800 rounded-lg" />
+            <div className="h-5 w-20 bg-slate-800/80 rounded-md" />
+          </div>
+
+          <div className="h-20 bg-slate-900 border border-slate-800/60 rounded-lg" />
         </div>
-      </div>
-
-      <h3 className="text-xl font-bold text-slate-100 mb-2">Generating Your Custom Itinerary</h3>
-      <p className="text-sm text-indigo-300 font-medium mb-6 animate-pulse">
-        {LOADING_STEPS[currentStep]}
-      </p>
-
-      {/* Progress steps indicator */}
-      <div className="w-full max-w-md space-y-2 text-left bg-slate-950/50 p-4 rounded-xl border border-slate-800">
-        {LOADING_STEPS.map((step, idx) => {
-          const isDone = idx < currentStep;
-          const isCurrent = idx === currentStep;
-          return (
-            <div
-              key={idx}
-              className={`flex items-center gap-2.5 text-xs transition-colors duration-300 ${
-                isDone
-                  ? "text-emerald-400 font-medium"
-                  : isCurrent
-                  ? "text-indigo-300 font-semibold"
-                  : "text-slate-600"
-              }`}
-            >
-              {isDone ? (
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              ) : isCurrent ? (
-                <Loader2 className="w-3.5 h-3.5 text-indigo-400 animate-spin shrink-0" />
-              ) : (
-                <div className="w-3.5 h-3.5 rounded-full border border-slate-700 shrink-0" />
-              )}
-              <span className="truncate">{step}</span>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Skeleton placeholders */}
-      <div className="w-full max-w-xl mt-8 space-y-4 opacity-40">
-        <div className="h-12 bg-slate-800 rounded-xl animate-pulse" />
-        <div className="h-24 bg-slate-800/60 rounded-xl animate-pulse" />
-        <div className="h-24 bg-slate-800/60 rounded-xl animate-pulse" />
       </div>
     </div>
   );

@@ -17,6 +17,22 @@ const geminiItinerarySchema: Schema = {
       type: Type.INTEGER,
       description: "Total duration of the trip in days",
     },
+    budget: {
+      type: Type.STRING,
+      description: "Budget tier: Budget, Moderate, or Luxury",
+    },
+    pace: {
+      type: Type.STRING,
+      description: "Travel pace: Relaxed, Moderate, or Packed",
+    },
+    estimatedTotalCost: {
+      type: Type.STRING,
+      description: "Estimated total cost per person e.g. '$200 - $450'",
+    },
+    bestTimeToVisit: {
+      type: Type.STRING,
+      description: "Ideal season or months to visit e.g. 'March to May & Sept to Nov'",
+    },
     days: {
       type: Type.ARRAY,
       description: "Array of day plans",
@@ -31,6 +47,18 @@ const geminiItinerarySchema: Schema = {
             type: Type.STRING,
             description: "Theme or main focus area of the day",
           },
+          estimatedWalkingTime: {
+            type: Type.STRING,
+            description: "Estimated walking/transit time e.g. '45 mins walking'",
+          },
+          weatherForecast: {
+            type: Type.STRING,
+            description: "Typical weather for this destination e.g. 'Sunny, 21°C'",
+          },
+          dayCostEstimate: {
+            type: Type.STRING,
+            description: "Estimated total cost for the day e.g. '$40 - $70'",
+          },
           stops: {
             type: Type.ARRAY,
             description: "Sequential stops for the day",
@@ -43,7 +71,7 @@ const geminiItinerarySchema: Schema = {
                 },
                 time: {
                   type: Type.STRING,
-                  description: "Time of day e.g. '09:00' or '14:30'",
+                  description: "Time of day e.g. '09:00 AM' or '02:30 PM'",
                 },
                 name: {
                   type: Type.STRING,
@@ -60,6 +88,10 @@ const geminiItinerarySchema: Schema = {
                 location: {
                   type: Type.STRING,
                   description: "Specific neighborhood or address area",
+                },
+                estimatedCost: {
+                  type: Type.STRING,
+                  description: "Per-person estimated cost e.g. 'Free', '$15 entry', or '$25 lunch'",
                 },
               },
               required: ["id", "time", "name", "description", "durationMinutes", "location"],
@@ -91,7 +123,8 @@ CRITICAL REQUIREMENTS:
 2. For each day, include 3 to 5 realistic sequential stops spanning morning to evening.
 3. Generate unique string IDs for stops formatted as 'd{day_number}s{stop_number}' (e.g. 'd1s1', 'd1s2', 'd2s1').
 4. 'durationMinutes' MUST be an integer representing estimated time in minutes.
-5. Do NOT include markdown code blocks or explanatory conversational text. Output pure JSON matching the specified schema.
+5. Provide realistic cost estimates and walking time estimates for each day and stop.
+6. Do NOT include markdown code blocks or explanatory conversational text. Output pure JSON matching the specified schema.
 
 ${retryContext ? `\n[ATTENTION - PREVIOUS ATTEMPT FAILED SCHEMA VALIDATION]:\n${retryContext}\nPlease strictly fix the schema violations above and ensure all required fields are present with exact types.` : ""}`;
 }
@@ -155,8 +188,6 @@ export async function POST(req: NextRequest) {
     let validationResult = parsedJson ? ItinerarySchema.safeParse(parsedJson) : null;
 
     // --- STEP 3: Defense-in-depth retry logic ---
-    // If validation fails (either bad JSON string or schema mismatch), retry Gemini call ONCE
-    // appending explicit failure context to enforce schema contract before giving up.
     if (!validationResult || !validationResult.success) {
       const errorDetails = validationResult
         ? validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")
@@ -172,7 +203,7 @@ export async function POST(req: NextRequest) {
           config: {
             responseMimeType: "application/json",
             responseSchema: geminiItinerarySchema,
-            temperature: 0.2, // Lower temperature to strictly enforce schema
+            temperature: 0.2,
           },
         });
 

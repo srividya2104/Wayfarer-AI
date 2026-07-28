@@ -7,7 +7,9 @@ import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/LoadingState";
 import ErrorState from "@/components/ErrorState";
 import ItineraryView from "@/components/ItineraryView";
-import { Itinerary, TripInput } from "@/lib/schemas";
+import ToastContainer from "@/components/ToastContainer";
+import Footer from "@/components/Footer";
+import { Itinerary, TripInput, Toast } from "@/lib/schemas";
 
 export default function Home() {
   // Main app UI state machine
@@ -16,47 +18,58 @@ export default function Home() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [lastSubmittedInput, setLastSubmittedInput] = useState<TripInput | null>(null);
 
+  // Toast notifications array state
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const addToast = useCallback((message: string, actionLabel?: string, onAction?: () => void) => {
+    const newToast: Toast = {
+      id: Math.random().toString(36).substring(2, 9),
+      message,
+      type: "info",
+      actionLabel,
+      onAction,
+    };
+    setToasts((prev) => [...prev.slice(-3), newToast]); // keep max 4 toasts
+
+    // Auto dismiss after 4 seconds
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== newToast.id));
+    }, 4000);
+  }, []);
+
+  const dismissToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
   // =========================================================================
   // RACE-CONDITION & STALE-RESPONSE GUARDING (Interview Rubric Defense)
   //
-  // WHY THIS IS NEEDED:
-  // 1. If a user quickly submits Prompt A, then changes their mind and submits Prompt B,
-  //    both requests are asynchronously traveling to/from the API server.
-  // 2. If Request A takes 10s and Request B takes 3s, Request B will finish first.
-  //    When Request A eventually finishes 7s later, without stale guarding it would
-  //    overwrite Request B's fresh result with Request A's obsolete itinerary!
-  //
-  // DOUBLE-LAYERED DEFENSE STRATEGY:
-  // Layer 1: AbortController ref (`abortControllerRef.current`)
-  //          Calling `.abort()` immediately cancels the HTTP request socket for the previous fetch.
-  // Layer 2: Incrementing Request ID ref (`latestRequestId.current`)
-  //          Guarantees that even if an un-aborted promise resolves late, its completion handler
-  //          verifies `requestId === latestRequestId.current` before calling `setItinerary()`.
+  // Layer 1: AbortController ref (`abortControllerRef.current`) cancels in-flight fetch.
+  // Layer 2: `latestRequestId.current` ref counter ensures obsolete async callbacks are discarded.
   // =========================================================================
   const latestRequestId = useRef<number>(0);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchTripPlan = useCallback(async (input: TripInput) => {
-    // 1. Cancel any active in-flight fetch request
+    // 1. Cancel active fetch
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
 
-    // 2. Create a new AbortController for this specific request instance
+    // 2. Spawn new AbortController instance
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
-    // 3. Increment request ID tracking counter
+    // 3. Increment request ID
     const currentRequestId = ++latestRequestId.current;
 
-    // 4. Update state to loading
+    // 4. Update UI status
     setStatus("loading");
     setErrorMessage(null);
     setLastSubmittedInput(input);
 
-    // 5. Setup client-side 20-second timeout guard
+    // 5. 20-second client timeout guard
     const timeoutId = setTimeout(() => {
-      // Abort request if it exceeds 20 seconds budget
       if (latestRequestId.current === currentRequestId) {
         controller.abort();
       }
@@ -72,9 +85,9 @@ export default function Home() {
 
       clearTimeout(timeoutId);
 
-      // Check if another newer request was fired while this fetch was network-in-flight
+      // Verify staleness
       if (currentRequestId !== latestRequestId.current) {
-        console.warn(`[Stale Response Guarded] Ignoring response for obsolete request #${currentRequestId}`);
+        console.warn(`[Stale Response Guarded] Discarding response for obsolete request #${currentRequestId}`);
         return;
       }
 
@@ -94,29 +107,29 @@ export default function Home() {
 
       const data = await response.json();
 
-      // Final check: confirm request is still the latest before mutating UI state
+      // Commit to UI state if request is still current
       if (currentRequestId === latestRequestId.current) {
         setItinerary(data);
         setStatus("success");
+        addToast("Itinerary generated successfully!");
       }
     } catch (err: any) {
       clearTimeout(timeoutId);
 
-      // Check if request was discarded due to staleness
       if (currentRequestId !== latestRequestId.current) {
-        console.log(`[Obsolete Request Aborted] Request #${currentRequestId} was aborted by user's newer submission.`);
+        console.log(`[Obsolete Request Aborted] Request #${currentRequestId} was aborted.`);
         return;
       }
 
       if (err.name === "AbortError") {
         setStatus("error");
-        setErrorMessage("Request timed out (exceeded 20s budget) or was cancelled. Please try again.");
+        setErrorMessage("Request timed out (exceeded 20s budget) or was cancelled by a new prompt.");
       } else {
         setStatus("error");
         setErrorMessage(err.message || "Network error. Please check your internet connection.");
       }
     }
-  }, []);
+  }, [addToast]);
 
   const handleRetry = () => {
     if (lastSubmittedInput) {
@@ -131,7 +144,7 @@ export default function Home() {
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8">
         <TripForm onSubmit={fetchTripPlan} isLoading={status === "loading"} />
 
-        {/* Dynamic State Machine Display */}
+        {/* Dynamic UX State Machine */}
         <section aria-label="Itinerary Results Area" className="mt-8">
           {status === "idle" && <EmptyState />}
           {status === "loading" && <LoadingState />}
@@ -139,20 +152,19 @@ export default function Home() {
             <ErrorState message={errorMessage || "Failed to generate plan."} onRetry={handleRetry} />
           )}
           {status === "success" && itinerary && (
-            <ItineraryView itinerary={itinerary} setItinerary={setItinerary} />
+            <ItineraryView
+              itinerary={itinerary}
+              setItinerary={setItinerary}
+              onShowToast={addToast}
+            />
           )}
         </section>
       </main>
 
-      <footer className="w-full border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500">
-        <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p>© {new Date().getFullYear()} Wayfarer AI Trip Planner. Structured JSON powered by Gemini API.</p>
-          <div className="flex items-center gap-4">
-            <span className="text-slate-600">TypeScript & Zod Guarded</span>
-            <span className="text-slate-600">Vercel Ready</span>
-          </div>
-        </div>
-      </footer>
+      <Footer />
+
+      {/* Global Toast Overlay */}
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }
