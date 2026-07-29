@@ -28,10 +28,10 @@
   animation: spinSlow 12s linear infinite;
 }
 
-/* Custom scrollbar styling for modern dark UI */
+/* Custom scrollbar styling */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -40,7 +40,7 @@
 
 ::-webkit-scrollbar-thumb {
   background: #1e293b;
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -51,5 +51,73 @@
 @media (max-width: 640px) {
   button, input, select, textarea {
     min-height: 40px;
+  }
+}
+
+/* Print / PDF Export Styling: Targeted report layout */
+@media print {
+  /* Hide everything by default except the print-target container */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Make only the itinerary area visible and print cleanly */
+  #itinerary-print-area, #itinerary-print-area * {
+    visibility: visible;
+  }
+
+  #itinerary-print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 10px !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  /* Hide interactive controls in print */
+  .no-print, button, input, textarea, select {
+    display: none !important;
+  }
+
+  /* Avoid breaking day cards mid-page */
+  .print-day-card {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: 1.5rem !important;
+  }
+
+  /* Black text on white background */
+  .bg-slate-950, .bg-slate-900, .bg-slate-900\/90, .bg-slate-950\/80, .bg-slate-950\/60 {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+    box-shadow: none !important;
+  }
+
+  .text-slate-100, .text-slate-200, .text-slate-300 {
+    color: #0f172a !important;
+  }
+
+  .text-slate-400, .text-slate-500 {
+    color: #475569 !important;
+  }
+
+  .text-indigo-300, .text-indigo-400 {
+    color: #4f46e5 !important;
+  }
+
+  .text-purple-300, .text-purple-400 {
+    color: #7c3aed !important;
+  }
+
+  .text-emerald-300, .text-emerald-400 {
+    color: #059669 !important;
+  }
+
+  .text-amber-300, .text-amber-400 {
+    color: #d97706 !important;
   }
 }

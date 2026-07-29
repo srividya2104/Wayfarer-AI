@@ -9,11 +9,9 @@ import {
   ChevronsUp,
   Download,
   Copy,
-  Sparkles,
   DollarSign,
   Gauge,
   Sun,
-  CheckCircle2,
   Printer,
   Clock,
   Compass,
@@ -89,15 +87,15 @@ export default function ItineraryView({
   };
 
   const handleCopyItinerary = () => {
-    let text = `✈️ ITINERARY: ${itinerary.destination} (${itinerary.durationDays} Days)\n`;
+    let text = `Wayfarer AI - Trip Itinerary: ${itinerary.destination} (${itinerary.durationDays} Days)\n`;
     text += `Budget: ${itinerary.budget || "Moderate"} | Pace: ${itinerary.pace || "Relaxed"}\n\n`;
 
     itinerary.days.forEach((day) => {
-      text += `📅 DAY ${day.day}: ${day.title}\n`;
+      text += `DAY ${day.day}: ${day.title}\n`;
       day.stops.forEach((stop, idx) => {
         text += `  ${idx + 1}. [${stop.time}] ${stop.name} (${stop.durationMinutes} mins, ${stop.estimatedCost || "Free"})\n`;
-        text += `     📍 ${stop.location}\n`;
-        text += `     ${stop.description}\n`;
+        text += `     Location: ${stop.location}\n`;
+        text += `     Note: ${stop.description}\n`;
       });
       text += `\n`;
     });
@@ -117,12 +115,8 @@ export default function ItineraryView({
     onShowToast("Exported JSON itinerary!");
   };
 
-  // Point 7: Download PDF trigger (triggers browser print-to-pdf dialog)
   const handleDownloadPDF = () => {
-    onShowToast("Opening PDF export dialog...");
-    setTimeout(() => {
-      window.print();
-    }, 300);
+    window.print();
   };
 
   const handlePrint = () => {
@@ -137,39 +131,34 @@ export default function ItineraryView({
 
   return (
     <div
+      id="itinerary-print-area"
       ref={containerRef}
-      className="w-full space-y-6 my-6 animate-in fade-in zoom-in-95 duration-500 relative"
+      className="w-full space-y-5 my-6 animate-in fade-in duration-300 relative"
     >
-      {/* Trip Dashboard Header */}
-      <div className="bg-gradient-to-br from-slate-900 via-slate-900/90 to-indigo-950/40 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6 relative overflow-hidden">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800/80 pb-6">
+      {/* Clean Trip Summary Header */}
+      <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-5 sm:p-6 shadow-md space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs font-bold px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 flex items-center gap-1.5 font-mono uppercase tracking-wider">
-                <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-                Verified AI Travel Dashboard
-              </span>
-              <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">
-                Travel Score: {itinerary.travelScore || "9.6 / 10"}
-              </span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight">
+            <span className="text-xs font-semibold uppercase text-indigo-400 tracking-wider font-mono">
+              Wayfarer AI • Travel Report
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-100 tracking-tight">
               {itinerary.destination}
             </h2>
-            <p className="text-sm text-slate-400 mt-1">
-              Customized {itinerary.durationDays}-Day Interactive Travel Schedule
+            <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+              {itinerary.durationDays}-Day Personalized Travel Itinerary
             </p>
           </div>
 
-          {/* Point 7: Export Toolbar including Download PDF */}
-          <div className="flex flex-wrap items-center gap-2">
+          {/* Export Toolbar (Hidden during print) */}
+          <div className="flex flex-wrap items-center gap-2 no-print">
             <button
               type="button"
               onClick={handleCopyItinerary}
               aria-label="Copy text itinerary"
-              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-all active:scale-95 min-h-[40px] focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none"
+              className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-all active:scale-95 min-h-[36px] focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none"
             >
-              <Copy className="w-4 h-4 text-indigo-400" />
+              <Copy className="w-3.5 h-3.5 text-indigo-400" />
               <span>Copy</span>
             </button>
 
@@ -177,19 +166,19 @@ export default function ItineraryView({
               type="button"
               onClick={handleDownloadJSON}
               aria-label="Download JSON file"
-              className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-indigo-600/20 transition-all active:scale-95 min-h-[40px] focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none"
+              className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all active:scale-95 min-h-[36px] focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none"
             >
-              <Download className="w-4 h-4" />
+              <Download className="w-3.5 h-3.5" />
               <span>Download JSON</span>
             </button>
 
             <button
               type="button"
               onClick={handleDownloadPDF}
-              aria-label="Download PDF"
-              className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-purple-600/20 transition-all active:scale-95 min-h-[40px] focus-visible:ring-2 focus-visible:ring-purple-500 outline-none"
+              aria-label="Download PDF report"
+              className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all active:scale-95 min-h-[36px] focus-visible:ring-2 focus-visible:ring-purple-500 outline-none"
             >
-              <FileText className="w-4 h-4" />
+              <FileText className="w-3.5 h-3.5" />
               <span>Download PDF</span>
             </button>
 
@@ -197,101 +186,81 @@ export default function ItineraryView({
               type="button"
               onClick={handlePrint}
               aria-label="Print itinerary"
-              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-all active:scale-95 min-h-[40px] focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none"
+              className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-all active:scale-95 min-h-[36px] focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none"
             >
-              <Printer className="w-4 h-4 text-slate-400" />
+              <Printer className="w-3.5 h-3.5 text-slate-400" />
               <span>Print</span>
             </button>
           </div>
         </div>
 
-        {/* Dashboard Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-          <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
-            <div className="text-[11px] text-slate-400 flex items-center gap-1 mb-1">
-              <Calendar className="w-3.5 h-3.5 text-indigo-400" /> Duration
+        {/* Clean Summary Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5">
+          <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+            <div className="text-[11px] text-slate-400 flex items-center gap-1 mb-0.5">
+              <Calendar className="w-3 h-3 text-indigo-400" /> Duration
             </div>
-            <div className="text-sm font-bold text-slate-100 font-mono">{itinerary.durationDays} Days</div>
+            <div className="text-xs font-bold text-slate-100 font-mono">{itinerary.durationDays} Days</div>
           </div>
 
-          <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
-            <div className="text-[11px] text-slate-400 flex items-center gap-1 mb-1">
-              <Layers className="w-3.5 h-3.5 text-purple-400" /> Attractions
+          <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+            <div className="text-[11px] text-slate-400 flex items-center gap-1 mb-0.5">
+              <Layers className="w-3 h-3 text-purple-400" /> Total Stops
             </div>
-            <div className="text-sm font-bold text-slate-100 font-mono">{totalStops} Places</div>
+            <div className="text-xs font-bold text-slate-100 font-mono">{totalStops} Attractions</div>
           </div>
 
-          <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
-            <div className="text-[11px] text-slate-400 flex items-center gap-1 mb-1">
-              <Clock className="w-3.5 h-3.5 text-indigo-400" /> Travel Time
+          <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+            <div className="text-[11px] text-slate-400 flex items-center gap-1 mb-0.5">
+              <DollarSign className="w-3 h-3 text-emerald-400" /> Est. Budget
             </div>
-            <div className="text-sm font-bold text-slate-100 font-mono">~{totalHours} Hours</div>
+            <div className="text-xs font-bold text-emerald-300 font-mono">{itinerary.estimatedTotalCost || "$150-$350"}</div>
           </div>
 
-          <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
-            <div className="text-[11px] text-slate-400 flex items-center gap-1 mb-1">
-              <DollarSign className="w-3.5 h-3.5 text-emerald-400" /> Est. Budget
+          <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+            <div className="text-[11px] text-slate-400 flex items-center gap-1 mb-0.5">
+              <Gauge className="w-3 h-3 text-amber-400" /> Pace
             </div>
-            <div className="text-sm font-bold text-emerald-300 font-mono">{itinerary.estimatedTotalCost || "$150-$350"}</div>
+            <div className="text-xs font-bold text-amber-300">{itinerary.pace || "Relaxed"}</div>
           </div>
 
-          <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
-            <div className="text-[11px] text-slate-400 flex items-center gap-1 mb-1">
-              <Utensils className="w-3.5 h-3.5 text-amber-400" /> Food Stops
+          <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+            <div className="text-[11px] text-slate-400 flex items-center gap-1 mb-0.5">
+              <Utensils className="w-3 h-3 text-amber-400" /> Food Spots
             </div>
-            <div className="text-sm font-bold text-amber-300 font-mono">{foodCount > 0 ? foodCount : 3} Spots</div>
+            <div className="text-xs font-bold text-amber-300 font-mono">{foodCount > 0 ? foodCount : 3} Places</div>
           </div>
 
-          <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
-            <div className="text-[11px] text-slate-400 flex items-center gap-1 mb-1">
-              <Landmark className="w-3.5 h-3.5 text-rose-400" /> Culture/History
+          <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+            <div className="text-[11px] text-slate-400 flex items-center gap-1 mb-0.5">
+              <Sun className="w-3 h-3 text-amber-400" /> Best Season
             </div>
-            <div className="text-sm font-bold text-rose-300 font-mono">{historyCount > 0 ? historyCount : 4} Sites</div>
-          </div>
-        </div>
-
-        {/* Progress Indicator */}
-        <div className="bg-slate-950/80 p-4 rounded-xl border border-slate-800/80 space-y-2">
-          <div className="flex items-center justify-between text-xs text-slate-300 font-semibold">
-            <span>Trip Execution Breakdown</span>
-            <span className="text-indigo-400 font-mono">{itinerary.days.length} Days Configured</span>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 pt-1">
-            {itinerary.days.map((dayPlan) => (
-              <div
-                key={dayPlan.day}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs font-medium text-slate-300"
-              >
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Day {dayPlan.day} ({dayPlan.stops.length} stops)</span>
-              </div>
-            ))}
+            <div className="text-xs font-bold text-slate-200 truncate">{itinerary.bestTimeToVisit || "Spring/Autumn"}</div>
           </div>
         </div>
       </div>
 
-      {/* Days List Toolbar */}
-      <div className="flex items-center justify-between px-1">
-        <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2">
-          <Layers className="w-5 h-5 text-indigo-400" />
-          Interactive Day-by-Day Schedule
+      {/* Toolbar: Expand/Collapse (Hidden during print) */}
+      <div className="flex items-center justify-between px-1 no-print">
+        <h3 className="text-base font-bold text-slate-200 flex items-center gap-2">
+          <Layers className="w-4 h-4 text-indigo-400" />
+          Day-by-Day Itinerary
         </h3>
 
         <button
           type="button"
           onClick={() => setIsGloballyExpanded(!isGloballyExpanded)}
           aria-label={isGloballyExpanded ? "Collapse all days" : "Expand all days"}
-          className="text-xs font-semibold px-3 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 flex items-center gap-1.5 transition-colors min-h-[40px] focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none"
+          className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 flex items-center gap-1.5 transition-colors min-h-[36px] focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none"
         >
           {isGloballyExpanded ? (
             <>
-              <ChevronsUp className="w-4 h-4 text-indigo-400" />
+              <ChevronsUp className="w-3.5 h-3.5 text-indigo-400" />
               <span>Collapse All Days</span>
             </>
           ) : (
             <>
-              <ChevronsDown className="w-4 h-4 text-indigo-400" />
+              <ChevronsDown className="w-3.5 h-3.5 text-indigo-400" />
               <span>Expand All Days</span>
             </>
           )}
@@ -299,68 +268,62 @@ export default function ItineraryView({
       </div>
 
       {/* Days List */}
-      <div className="space-y-4">
+      <div className="space-y-3.5">
         {itinerary.days.map((dayPlan, dIdx) => (
-          <DayCard
-            key={dayPlan.day || dIdx}
-            dayPlan={dayPlan}
-            dayIndex={dIdx}
-            isGloballyExpanded={isGloballyExpanded}
-            onUpdateStops={(newStops) => handleUpdateDayStops(dIdx, newStops)}
-            onShowToast={onShowToast}
-          />
+          <div key={dayPlan.day || dIdx} className="print-day-card">
+            <DayCard
+              dayPlan={dayPlan}
+              dayIndex={dIdx}
+              isGloballyExpanded={isGloballyExpanded}
+              onUpdateStops={(newStops) => handleUpdateDayStops(dIdx, newStops)}
+              onShowToast={onShowToast}
+            />
+          </div>
         ))}
       </div>
 
-      {/* Point 5: Smart Recommendations Cards with Rich Emojis */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-xl">
-        <h4 className="text-base font-bold text-slate-100 flex items-center gap-2">
-          <Compass className="w-5 h-5 text-indigo-400" />
-          Smart Recommendations (You May Also Like)
+      {/* Smart Recommendations Section */}
+      <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-5 space-y-3 shadow-md print-day-card">
+        <h4 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+          <Compass className="w-4 h-4 text-indigo-400" />
+          Recommendations & Highlights
         </h4>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 flex items-start gap-3">
-            <span className="text-2xl p-1 bg-slate-900 rounded-lg border border-slate-800">🏯</span>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800 flex items-start gap-2.5">
+            <span className="text-xl">🏯</span>
             <div>
-              <span className="text-[11px] font-bold text-indigo-300 block uppercase">Bonus Attraction</span>
+              <span className="text-[10px] font-bold text-indigo-300 block uppercase">Bonus Attraction</span>
               <span className="text-xs text-slate-200 font-medium">{recs.nearbyAttraction || "Fushimi Inari Shrine"}</span>
             </div>
           </div>
 
-          <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 flex items-start gap-3">
-            <span className="text-2xl p-1 bg-slate-900 rounded-lg border border-slate-800">🍜</span>
+          <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800 flex items-start gap-2.5">
+            <span className="text-xl">🍜</span>
             <div>
-              <span className="text-[11px] font-bold text-amber-300 block uppercase">Must-Try Food</span>
+              <span className="text-[10px] font-bold text-amber-300 block uppercase">Food Recommendation</span>
               <span className="text-xs text-slate-200 font-medium">{recs.localFood || "Matcha Parfait & Tonkotsu Ramen"}</span>
             </div>
           </div>
 
-          <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 flex items-start gap-3">
-            <span className="text-2xl p-1 bg-slate-900 rounded-lg border border-slate-800">🛍️</span>
+          <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800 flex items-start gap-2.5">
+            <span className="text-xl">💎</span>
             <div>
-              <span className="text-[11px] font-bold text-purple-300 block uppercase">Shopping Street</span>
-              <span className="text-xs text-slate-200 font-medium">{recs.shoppingStreet || "Nishiki Market"}</span>
-            </div>
-          </div>
-
-          <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 flex items-start gap-3">
-            <span className="text-2xl p-1 bg-slate-900 rounded-lg border border-slate-800">💎</span>
-            <div>
-              <span className="text-[11px] font-bold text-pink-300 block uppercase">Hidden Gem</span>
+              <span className="text-[10px] font-bold text-pink-300 block uppercase">Hidden Gem</span>
               <span className="text-xs text-slate-200 font-medium">{recs.hiddenGem || "Gio-ji Temple Moss Garden"}</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Floating Action Button */}
-      <div className="fixed bottom-6 left-6 z-40 flex items-center gap-2">
+      {/* Floating Scroll-to-Top Button (Hidden during print) */}
+      <div className="fixed bottom-5 left-5 z-40 flex items-center gap-2 no-print">
         {showScrollTop && (
           <button
             type="button"
             onClick={scrollToTop}
-            className="p-3 rounded-full bg-slate-900/90 border border-slate-700 text-slate-200 shadow-2xl hover:bg-slate-800 transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none"
+            className="p-2.5 rounded-full bg-slate-900 border border-slate-700 text-slate-200 shadow-lg hover:bg-slate-800 transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none"
+npm run dev
             title="Back to top"
             aria-label="Back to top"
           >

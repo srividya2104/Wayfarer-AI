@@ -80,8 +80,8 @@ const StopCard = memo(function StopCard({
           </div>
         </div>
 
-        {/* Action Controls Toolbar */}
-        <div className="flex items-center gap-1 shrink-0 bg-slate-950/70 p-1 rounded-lg border border-slate-800 self-end sm:self-start">
+        {/* Action Controls Toolbar (Hidden during print) */}
+        <div className="flex items-center gap-1 shrink-0 bg-slate-950/70 p-1 rounded-lg border border-slate-800 self-end sm:self-start no-print">
           <button
             type="button"
             onClick={onMoveUp}
@@ -132,14 +132,14 @@ const StopCard = memo(function StopCard({
       {isExpanded && (
         <div className="mt-3 pt-3 border-t border-slate-800/60 text-xs text-slate-300 space-y-2 animate-in fade-in duration-200">
           <div className="flex items-start gap-2 leading-relaxed">
-            <Info className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+            <Info className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5 no-print" />
             <p>{stop.description}</p>
           </div>
 
           {/* Travel Tip & Photo Spot Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
             <div className="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/60 flex items-start gap-2 text-slate-300">
-              <Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+              <Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5 no-print" />
               <div>
                 <span className="font-bold text-[11px] text-amber-300 block">Insider Tip:</span>
                 <span>{stop.travelTip || "Arrive early in the morning to avoid queues."}</span>
@@ -147,7 +147,7 @@ const StopCard = memo(function StopCard({
             </div>
 
             <div className="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/60 flex items-start gap-2 text-slate-300">
-              <Camera className="w-3.5 h-3.5 text-purple-400 shrink-0 mt-0.5" />
+              <Camera className="w-3.5 h-3.5 text-purple-400 shrink-0 mt-0.5 no-print" />
               <div>
                 <span className="font-bold text-[11px] text-purple-300 block">Best Photo Spot:</span>
                 <span>{stop.bestPhotoSpot || "Main entrance viewpoint"}</span>

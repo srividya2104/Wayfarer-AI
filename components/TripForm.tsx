@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Sparkles, Calendar, DollarSign, Gauge, Tag, CheckCircle2, Globe, Command, Loader2 } from "lucide-react";
+import { Sparkles, Calendar, DollarSign, Gauge, Tag, Globe, Command, Loader2 } from "lucide-react";
 import { TripInput } from "@/lib/schemas";
 
 interface TripFormProps {
@@ -132,43 +132,27 @@ export default function TripForm({ onSubmit, isLoading }: TripFormProps) {
       : "text-slate-500";
 
   return (
-    <div className="w-full space-y-4">
-      {/* Hero Header */}
-      <div className="text-center space-y-2 py-1 max-w-2xl mx-auto">
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight">
-          Design Your <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Perfect Journey</span>
+    <div className="w-full space-y-5">
+      {/* Clean Internship-Style Hero Header */}
+      <div className="text-center space-y-1.5 py-1 max-w-xl mx-auto">
+        <h2 className="text-2xl sm:text-3xl font-bold text-slate-100 tracking-tight">
+          Wayfarer AI
         </h2>
         <p className="text-xs sm:text-sm text-slate-400 leading-normal">
-          Generate structured AI travel itineraries that you can edit, reorder, and customize in seconds.
+          Plan your trip with AI and generate a personalized itinerary.
         </p>
-
-        {/* Clean Hero Badges */}
-        <div className="flex flex-wrap items-center justify-center gap-2 pt-0.5">
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
-            <CheckCircle2 className="w-3 h-3 text-indigo-400" />
-            Structured JSON
-          </span>
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-500/10 text-purple-300 border border-purple-500/20">
-            <CheckCircle2 className="w-3 h-3 text-purple-400" />
-            Server Validated
-          </span>
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-pink-500/10 text-pink-300 border border-pink-500/20">
-            <CheckCircle2 className="w-3 h-3 text-pink-400" />
-            Interactive Itinerary
-          </span>
-        </div>
       </div>
 
-      {/* Form Container */}
+      {/* Main Form Container */}
       <form
         onSubmit={handleSubmit}
-        className="w-full bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-2xl p-5 sm:p-7 shadow-2xl transition-all duration-300 hover:border-slate-700/80"
+        className="w-full bg-slate-900/80 border border-slate-800 rounded-xl p-5 sm:p-6 shadow-md"
       >
-        {/* Popular Destinations Presets */}
-        <div className="mb-5">
+        {/* Destination Presets */}
+        <div className="mb-4">
           <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
             <Globe className="w-3.5 h-3.5 text-indigo-400" />
-            Select a Popular Destination:
+            Sample Destinations:
           </label>
           <div className="flex flex-wrap gap-2">
             {POPULAR_DESTINATIONS.map((dest, idx) => (
@@ -178,9 +162,9 @@ export default function TripForm({ onSubmit, isLoading }: TripFormProps) {
                 onClick={() => handleApplyDestination(dest)}
                 disabled={isLoading}
                 aria-label={`Fill form with ${dest.name} details`}
-                className="text-xs bg-slate-800/80 hover:bg-slate-700/80 text-indigo-300 hover:text-indigo-200 border border-slate-700/70 rounded-lg px-3 py-1.5 transition-all flex items-center gap-1.5 group disabled:opacity-50 min-h-[36px] active:scale-95 focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none"
+                className="text-xs bg-slate-800/80 hover:bg-slate-700/80 text-indigo-300 hover:text-indigo-200 border border-slate-700/70 rounded-lg px-2.5 py-1 transition-all flex items-center gap-1.5 group disabled:opacity-50 min-h-[34px] active:scale-95 focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none"
               >
-                <Sparkles className="w-3.5 h-3.5 text-indigo-400 group-hover:scale-110 transition-transform" />
+                <Sparkles className="w-3 h-3 text-indigo-400" />
                 <span>{dest.name}</span>
               </button>
             ))}
@@ -188,10 +172,10 @@ export default function TripForm({ onSubmit, isLoading }: TripFormProps) {
         </div>
 
         {/* Free-form Prompt Input */}
-        <div className="mb-5">
-          <div className="flex items-center justify-between mb-2">
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-1.5">
             <label htmlFor="prompt-input" className="block text-xs sm:text-sm font-medium text-slate-200">
-              Trip Description & Specific Requests <span className="text-rose-400">*</span>
+              Trip Description & Requests <span className="text-rose-400">*</span>
             </label>
             <span className={`text-xs font-mono ${charCounterColor}`}>
               {charLength} / {MAX_CHARS}
@@ -212,22 +196,22 @@ export default function TripForm({ onSubmit, isLoading }: TripFormProps) {
             maxLength={MAX_CHARS}
             placeholder="e.g., 3 days in Tokyo visiting anime spots, historic shrines, street food markets, and a day trip to Kamakura."
             aria-label="Trip description input"
-            className={`w-full bg-slate-950/70 border ${
+            className={`w-full bg-slate-950/80 border ${
               isInvalid ? "border-rose-500/80 focus:ring-rose-500/50" : "border-slate-700/80 focus:ring-indigo-500/80 focus:border-indigo-500"
-            } rounded-xl p-3.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 transition-all text-sm resize-none disabled:opacity-50`}
+            } rounded-lg p-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 transition-all text-sm resize-none disabled:opacity-50`}
           />
 
           {isInvalid && (
-            <p className="mt-1 text-xs text-rose-400 font-medium animate-in fade-in slide-in-from-top-1 duration-200">
+            <p className="mt-1 text-xs text-rose-400 font-medium animate-in fade-in duration-200">
               Please enter a trip description (at least 5 characters).
             </p>
           )}
         </div>
 
         {/* Options: Duration, Budget, Pace */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-5">
-          <div className="bg-slate-950/40 p-3.5 rounded-xl border border-slate-800/80">
-            <label htmlFor="duration-slider" className="flex items-center justify-between text-xs font-semibold text-slate-300 mb-1.5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+          <div className="bg-slate-950/50 p-3 rounded-lg border border-slate-800">
+            <label htmlFor="duration-slider" className="flex items-center justify-between text-xs font-semibold text-slate-300 mb-1">
               <span className="flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-indigo-400" />
                 Duration
@@ -252,8 +236,8 @@ export default function TripForm({ onSubmit, isLoading }: TripFormProps) {
             </div>
           </div>
 
-          <div className="bg-slate-950/40 p-3.5 rounded-xl border border-slate-800/80">
-            <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 mb-1.5">
+          <div className="bg-slate-950/50 p-3 rounded-lg border border-slate-800">
+            <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 mb-1">
               <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
               Budget Style
             </label>
@@ -265,9 +249,9 @@ export default function TripForm({ onSubmit, isLoading }: TripFormProps) {
                   onClick={() => setBudget(b)}
                   disabled={isLoading}
                   aria-label={`Select ${b} budget`}
-                  className={`text-xs py-1.5 rounded-lg border font-medium transition-all min-h-[36px] focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none ${
+                  className={`text-xs py-1 rounded-md border font-medium transition-all min-h-[34px] focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none ${
                     budget === b
-                      ? "bg-emerald-500/20 border-emerald-500/60 text-emerald-300 font-bold"
+                      ? "bg-emerald-500/20 border-emerald-500/60 text-emerald-300 font-semibold"
                       : "bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200"
                   }`}
                 >
@@ -277,8 +261,8 @@ export default function TripForm({ onSubmit, isLoading }: TripFormProps) {
             </div>
           </div>
 
-          <div className="bg-slate-950/40 p-3.5 rounded-xl border border-slate-800/80">
-            <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 mb-1.5">
+          <div className="bg-slate-950/50 p-3 rounded-lg border border-slate-800">
+            <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 mb-1">
               <Gauge className="w-3.5 h-3.5 text-amber-400" />
               Travel Pace
             </label>
@@ -290,9 +274,9 @@ export default function TripForm({ onSubmit, isLoading }: TripFormProps) {
                   onClick={() => setPace(p)}
                   disabled={isLoading}
                   aria-label={`Select ${p} travel pace`}
-                  className={`text-xs py-1.5 rounded-lg border font-medium transition-all min-h-[36px] focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none ${
+                  className={`text-xs py-1 rounded-md border font-medium transition-all min-h-[34px] focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none ${
                     pace === p
-                      ? "bg-amber-500/20 border-amber-500/60 text-amber-300 font-bold"
+                      ? "bg-amber-500/20 border-amber-500/60 text-amber-300 font-semibold"
                       : "bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200"
                   }`}
                 >
@@ -303,13 +287,13 @@ export default function TripForm({ onSubmit, isLoading }: TripFormProps) {
           </div>
         </div>
 
-        {/* Focus Interests Tags */}
+        {/* Interests */}
         <div className="mb-5">
           <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 mb-2">
             <Tag className="w-3.5 h-3.5 text-purple-400" />
-            Focus & Interests
+            Interests
           </label>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {AVAILABLE_INTERESTS.map((interest) => {
               const active = selectedInterests.includes(interest);
               return (
@@ -319,9 +303,9 @@ export default function TripForm({ onSubmit, isLoading }: TripFormProps) {
                   onClick={() => toggleInterest(interest)}
                   disabled={isLoading}
                   aria-label={`Toggle interest ${interest}`}
-                  className={`text-xs px-3 py-1.5 rounded-full border transition-all min-h-[36px] focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none ${
+                  className={`text-xs px-2.5 py-1 rounded-full border transition-all min-h-[32px] focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none ${
                     active
-                      ? "bg-purple-500/20 border-purple-500/60 text-purple-300 font-semibold"
+                      ? "bg-purple-500/20 border-purple-500/60 text-purple-300 font-medium"
                       : "bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-300"
                   }`}
                 >
@@ -332,23 +316,23 @@ export default function TripForm({ onSubmit, isLoading }: TripFormProps) {
           </div>
         </div>
 
-        {/* Generate Button */}
+        {/* Submit Button */}
         <button
           type="submit"
           disabled={isLoading}
           aria-label="Generate AI Itinerary"
-          className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold shadow-lg shadow-indigo-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-indigo-500/40 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center justify-center gap-2.5 text-base min-h-[48px] focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none"
+          className="w-full py-3 px-5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-md transition-all active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm min-h-[44px] focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none"
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin text-white" />
-              <span>Generating...</span>
+              <Loader2 className="w-4 h-4 animate-spin text-white" />
+              <span>Generating Itinerary...</span>
             </>
           ) : (
             <>
-              <Sparkles className="w-5 h-5 animate-pulse" />
-              <span>Generate AI Itinerary</span>
-              <span className="text-xs opacity-75 font-normal bg-black/20 px-2 py-0.5 rounded flex items-center gap-1 ml-auto">
+              <Sparkles className="w-4 h-4" />
+              <span>Generate Itinerary</span>
+              <span className="text-[11px] opacity-75 font-normal bg-black/20 px-2 py-0.5 rounded flex items-center gap-1 ml-auto">
                 <Command className="w-3 h-3" /> + Enter
               </span>
             </>
