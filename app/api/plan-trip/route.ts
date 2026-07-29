@@ -158,13 +158,108 @@ CRITICAL REQUIREMENTS:
 ${retryContext ? `\n[ATTENTION - PREVIOUS ATTEMPT FAILED SCHEMA VALIDATION]:\n${retryContext}\nPlease strictly fix the schema violations above and ensure all required fields are present with exact types.` : ""}`;
 }
 
+/**
+ * Sanitizes Gemini API errors into clean user-friendly error objects.
+ * Raw API JSON, stack traces, quotaId, and quotaMetric are logged to console.error ONLY.
+ */
+function sanitizeGeminiError(apiErr: any): {
+  statusCode: number;
+  errorTitle: string;
+  message: string;
+  retryDelaySeconds?: number;
+} {
+  // Always log raw error to server console for debugging
+  console.error("[Gemini API Server Error - Full Log]:", apiErr);
+
+  const errStr = String(apiErr?.message || apiErr || "");
+  const status = apiErr?.status || apiErr?.statusCode || apiErr?.error?.code || 500;
+
+  // Check 429 / RESOURCE_EXHAUSTED / Quota
+  if (
+    status === 429 ||
+    errStr.includes("429") ||
+    errStr.includes("RESOURCE_EXHAUSTED") ||
+    errStr.toLowerCase().includes("quota")
+  ) {
+    let retryDelaySeconds: number | undefined;
+    const match = errStr.match(/retry in (\d+)s/i) || errStr.match(/retryAfter.*?(\d+)/i) || errStr.match(/(\d+)\s*seconds/i);
+    if (match && match[1]) {
+      retryDelaySeconds = parseInt(match[1], 10);
+    }
+
+    return {
+      statusCode: 429,
+      errorTitle: "Daily AI Request Limit Reached",
+      message:
+        "The AI service has temporarily reached its free request limit. Please wait a minute and try again, or use another Gemini API key.",
+      retryDelaySeconds,
+    };
+  }
+
+  // Check 401 / Unauthorized
+  if (status === 401 || errStr.includes("401") || errStr.toLowerCase().includes("unauthorized") || errStr.toLowerCase().includes("api key")) {
+    return {
+      statusCode: 401,
+      errorTitle: "API Authorization Failed",
+      message: "The Gemini API key is missing or invalid. Please check your server environment configuration.",
+    };
+  }
+
+  // Check 403 / Forbidden
+  if (status === 403 || errStr.includes("403") || errStr.toLowerCase().includes("forbidden")) {
+    return {
+      statusCode: 403,
+      errorTitle: "Access Restricted",
+      message: "Access to the AI service was forbidden. Please verify API key permissions.",
+    };
+  }
+
+  // Check 404 / Not Found
+  if (status === 404 || errStr.includes("404") || errStr.toLowerCase().includes("not found")) {
+    return {
+      statusCode: 404,
+      errorTitle: "AI Service Unavailable",
+      message: "The requested AI model endpoint could not be found. Please check model configuration.",
+    };
+  }
+
+  // Check 503 / Service Unavailable / Overloaded
+  if (status === 503 || errStr.includes("503") || errStr.toLowerCase().includes("overloaded") || errStr.toLowerCase().includes("unavailable")) {
+    return {
+      statusCode: 503,
+      errorTitle: "Service Temporarily Busy",
+      message: "The AI service is temporarily overloaded. Please try again in a few moments.",
+    };
+  }
+
+  // Check 400 / Bad Request
+  if (status === 400 || errStr.includes("400") || errStr.toLowerCase().includes("bad request")) {
+    return {
+      statusCode: 400,
+      errorTitle: "Invalid Request",
+      message: "The trip request parameters were invalid. Please adjust your prompt and try again.",
+    };
+  }
+
+  // Default 500
+  return {
+    statusCode: 500,
+    errorTitle: "Server Processing Error",
+    message: "An error occurred while generating your itinerary on the server. Please try again.",
+  };
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body: TripInput = await req.json();
 
     if (!body || !body.prompt) {
       return NextResponse.json(
-        { error: "Invalid request body: 'prompt' is required." },
+        {
+          statusCode: 400,
+          errorTitle: "Invalid Request",
+          message: "Trip description prompt is required.",
+        },
         { status: 400 }
       );
     }
@@ -173,10 +268,11 @@ export async function POST(req: NextRequest) {
     if (!apiKey || apiKey === "your_gemini_api_key_here") {
       return NextResponse.json(
         {
-          error:
-            "GEMINI_API_KEY is not configured on the server. Please set GEMINI_API_KEY in your .env.local file.",
+          statusCode: 401,
+          errorTitle: "API Key Not Configured",
+          message: "GEMINI_API_KEY is not configured on the server. Please set GEMINI_API_KEY in your .env.local file.",
         },
-        { status: 500 }
+        { status: 401 }
       );
     }
 
@@ -199,11 +295,8 @@ export async function POST(req: NextRequest) {
 
       rawText = response.text || "";
     } catch (apiErr: any) {
-      console.error("[Gemini API Call Error]:", apiErr);
-      return NextResponse.json(
-        { error: `Gemini API service error: ${apiErr.message || "Failed to reach AI service"}` },
-        { status: 502 }
-      );
+      const sanitized = sanitizeGeminiError(apiErr);
+      return NextResponse.json(sanitized, { status: sanitized.statusCode });
     }
 
     // --- STEP 2: Server-side validation using Zod schema ---
@@ -240,7 +333,8 @@ export async function POST(req: NextRequest) {
         parsedJson = JSON.parse(rawText);
         validationResult = ItinerarySchema.safeParse(parsedJson);
       } catch (retryErr: any) {
-        console.error("[Gemini Retry Call Failed]:", retryErr);
+        const sanitized = sanitizeGeminiError(retryErr);
+        return NextResponse.json(sanitized, { status: sanitized.statusCode });
       }
     }
 
@@ -252,8 +346,9 @@ export async function POST(req: NextRequest) {
       );
       return NextResponse.json(
         {
-          error:
-            "The AI generated an invalid itinerary structure after retry. Please refine your prompt or try again.",
+          statusCode: 422,
+          errorTitle: "Itinerary Validation Issue",
+          message: "The AI generated an invalid itinerary structure after retry. Please adjust your prompt and try again.",
         },
         { status: 422 }
       );
@@ -262,10 +357,7 @@ export async function POST(req: NextRequest) {
     // Successfully validated structure against Zod schema
     return NextResponse.json(validationResult.data, { status: 200 });
   } catch (error: any) {
-    console.error("[POST /api/plan-trip Server Error]:", error);
-    return NextResponse.json(
-      { error: "An unexpected server error occurred while generating the itinerary." },
-      { status: 500 }
-    );
+    const sanitized = sanitizeGeminiError(error);
+    return NextResponse.json(sanitized, { status: sanitized.statusCode });
   }
 }

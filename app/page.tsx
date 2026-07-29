@@ -9,12 +9,12 @@ import ErrorState from "@/components/ErrorState";
 import ItineraryView from "@/components/ItineraryView";
 import ToastContainer from "@/components/ToastContainer";
 import Footer from "@/components/Footer";
-import { Itinerary, TripInput, Toast } from "@/lib/schemas";
+import { Itinerary, TripInput, Toast, ApiError } from "@/lib/schemas";
 
 export default function Home() {
   const [status, setStatus] = useState<"idle" | "loading" | "complete" | "error" | "success">("idle");
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorObj, setErrorObj] = useState<ApiError | null>(null);
   const [lastSubmittedInput, setLastSubmittedInput] = useState<TripInput | null>(null);
 
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -38,29 +38,44 @@ export default function Home() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  // Race Condition Defense: AbortController ref + incrementing request ID ref
+  // Race Condition & Abort Safety: AbortController ref + incrementing request ID ref
   const latestRequestId = useRef<number>(0);
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // Unmount cleanup: cancel any pending fetch when component unmounts
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
   const fetchTripPlan = useCallback(async (input: TripInput) => {
+    // Abort previous in-flight request if present
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
+      abortControllerRef.current = null;
     }
 
+    // Create fresh AbortController for this request
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
     const currentRequestId = ++latestRequestId.current;
 
     setStatus("loading");
-    setErrorMessage(null);
+    setErrorObj(null);
     setLastSubmittedInput(input);
 
+    // Set a generous 45-second timeout budget for LLM generation
+    let isTimedOut = false;
     const timeoutId = setTimeout(() => {
       if (latestRequestId.current === currentRequestId) {
+        isTimedOut = true;
         controller.abort();
       }
-    }, 20000);
+    }, 45000);
 
     try {
       const response = await fetch("/api/plan-trip", {
@@ -70,30 +85,37 @@ export default function Home() {
         signal: controller.signal,
       });
 
+      // Clear timeout immediately upon response arrival
       clearTimeout(timeoutId);
 
+      // Ignore stale responses if a newer request was started
       if (currentRequestId !== latestRequestId.current) {
         return;
       }
 
       if (!response.ok) {
-        let errText = "Failed to generate itinerary.";
+        let errData: any = {};
         try {
-          const errData = await response.json();
-          errText = errData.error || errText;
-        } catch (_) {
-          errText = `Server responded with HTTP ${response.status}: ${response.statusText}`;
+          errData = await response.json();
+        } catch (jsonErr) {
+          console.error("[Client Fetch Error]: Failed to parse error JSON", jsonErr);
         }
 
+        const parsedError: ApiError = {
+          statusCode: errData.statusCode || response.status,
+          title: errData.errorTitle || "Generation Issue",
+          message: errData.message || "Failed to generate itinerary. Please try again.",
+          retryDelaySeconds: errData.retryDelaySeconds,
+        };
+
         setStatus("error");
-        setErrorMessage(errText);
+        setErrorObj(parsedError);
         return;
       }
 
       const data = await response.json();
 
       if (currentRequestId === latestRequestId.current) {
-        // Requirement 4: Briefly show complete confirmation before revealing itinerary
         setStatus("complete");
         setItinerary(data);
 
@@ -107,23 +129,57 @@ export default function Home() {
     } catch (err: any) {
       clearTimeout(timeoutId);
 
+      // Ignore stale responses if a newer request superseded this one
       if (currentRequestId !== latestRequestId.current) {
         return;
       }
 
-      if (err.name === "AbortError") {
-        setStatus("error");
-        setErrorMessage("Request timed out (exceeded 20s budget) or was cancelled by a new prompt.");
-      } else {
-        setStatus("error");
-        setErrorMessage(err.message || "Network error. Please check your internet connection.");
+      // Check if error is an AbortError
+      const isAbortError =
+        err?.name === "AbortError" ||
+        (typeof DOMException !== "undefined" && err instanceof DOMException && err.name === "AbortError") ||
+        String(err?.message || "").toLowerCase().includes("aborted");
+
+      if (isAbortError) {
+        if (isTimedOut) {
+          // Only show error UI if request actually timed out after 45s
+          setStatus("error");
+          setErrorObj({
+            statusCode: 408,
+            title: "Request Timed Out",
+            message: "The request exceeded the 45-second limit. Please try again or refine your prompt.",
+          });
+        } else {
+          // Ignore AbortError caused by cancellation or new submission - DO NOT show error UI
+          console.log("[fetchTripPlan]: Request aborted silently (new prompt or navigation).");
+        }
+        return;
       }
+
+      console.error("[Client Fetch Exception]:", err);
+      setStatus("error");
+      setErrorObj({
+        statusCode: 0,
+        title: "Network Connection Issue",
+        message: "Unable to connect to the server. Please check your internet connection and try again.",
+      });
+    } finally {
+      clearTimeout(timeoutId);
     }
   }, [addToast]);
 
   const handleRetry = () => {
     if (lastSubmittedInput) {
       fetchTripPlan(lastSubmittedInput);
+    }
+  };
+
+  const handleClearError = () => {
+    setErrorObj(null);
+    if (itinerary) {
+      setStatus("success");
+    } else {
+      setStatus("idle");
     }
   };
 
@@ -152,9 +208,9 @@ export default function Home() {
           {(status === "loading" || status === "complete") && (
             <LoadingState isComplete={status === "complete"} />
           )}
-          {status === "error" && (
+          {status === "error" && errorObj && (
             <div className="space-y-6">
-              <ErrorState message={errorMessage || "Failed to generate plan."} onRetry={handleRetry} />
+              <ErrorState error={errorObj} onRetry={handleRetry} onClear={handleClearError} />
               {itinerary && (
                 <div className="opacity-75">
                   <div className="text-xs text-slate-400 font-mono text-center mb-2">Previous Itinerary (Preserved):</div>

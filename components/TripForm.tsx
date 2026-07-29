@@ -86,6 +86,7 @@ export default function TripForm({ onSubmit, isLoading }: TripFormProps) {
   };
 
   const handleApplyDestination = (dest: (typeof POPULAR_DESTINATIONS)[0]) => {
+    if (isLoading) return;
     setPrompt(dest.prompt);
     setDurationDays(dest.duration);
     setBudget(dest.budget);
@@ -97,6 +98,8 @@ export default function TripForm({ onSubmit, isLoading }: TripFormProps) {
 
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (isLoading) return; // Prevent multiple simultaneous submissions
+
     setSubmitted(true);
 
     if (!prompt.trim() || prompt.trim().length < 5) {
@@ -121,7 +124,7 @@ export default function TripForm({ onSubmit, isLoading }: TripFormProps) {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [prompt, durationDays, budget, pace, selectedInterests]);
+  }, [prompt, durationDays, budget, pace, selectedInterests, isLoading]);
 
   const charLength = prompt.length;
   const charCounterColor =

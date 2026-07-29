@@ -79,3 +79,10 @@ export interface Toast {
   actionLabel?: string;
   onAction?: () => void;
 }
+
+export interface ApiError {
+  statusCode?: number;
+  title: string;
+  message: string;
+  retryDelaySeconds?: number;
+}

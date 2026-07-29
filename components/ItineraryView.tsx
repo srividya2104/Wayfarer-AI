@@ -323,7 +323,6 @@ export default function ItineraryView({
             type="button"
             onClick={scrollToTop}
             className="p-2.5 rounded-full bg-slate-900 border border-slate-700 text-slate-200 shadow-lg hover:bg-slate-800 transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none"
-npm run dev
             title="Back to top"
             aria-label="Back to top"
           >
